@@ -1,0 +1,111 @@
+.width-120px {
+    width: 120px !important;
+}
+.width-150px {
+    width: 150px !important;
+}
+.width-160px {
+    width: 160px !important;
+}
+.width-180px {
+    width: 180px !important;
+}
+.width-200px {
+    width: 200px !important;
+}
+
+.height-200px {
+/*    height: 200px !important;*/
+}
+
+.display-none {
+    display: none;
+}
+
+.form.compact-5 .form-group {
+    margin-bottom: 5px;
+}
+
+.form.compact-8 .form-group {
+    margin-bottom: 8px;
+}
+
+form.compact-10 .form-group {
+    margin-bottom: 10px;
+}
+
+.profile-picture {
+/*    text-align: center;*/
+}
+
+.profile-picture img {
+     /*max-height: 100%;*/
+     /*display: inline-block;*/
+     /*text-align: center;*/
+ }
+
+.form-group.has-success .chosen-single {
+    color: #8BAD4C !important;
+}
+
+.form-group.has-error .chosen-single {
+    color: #D68273 !important;
+}
+
+
+.form-group.has-success input[type=checkbox].ace + .lbl::before,
+.form-group.has-success input[type=radio].ace + .lbl::before {
+    border-color: #9cc573;
+}
+
+.form-group.has-success label {
+    color: #8BAD4C;
+}
+
+.form-group.has-error input[type=checkbox].ace + .lbl::before,
+.form-group.has-error input[type=radio].ace + .lbl::before {
+    border-color: #f2a696;
+}
+
+.form-group.has-error label {
+    color: #D68273;
+}
+
+.swal2-container .btn {
+    margin: 5px;
+}
+
+/*    КЛАДР    */
+#modalKladr .map {
+    height: 200px;
+    border-radius: 0 !important;
+    border: 1px solid #d5d5d5;
+    padding: 5px 4px;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    -webkit-transition-duration: .1s;
+    transition-duration: .1s
+}
+#modalKladr .map:hover {
+    border-color: #b5b5b5
+}
+/*    /КЛАДР    */
+
+.form-horizontal .editable {
+    padding-top: 0px;
+}
+
+.editableform label {
+    margin-left: 11px;
+}
+
+.action-buttons {
+    text-align: left;
+    margin-bottom: 0;
+    padding-top: 7px;
+}
+
+#persons-table .action-buttons {
+    text-align: center;
+    padding-top: 0;
+}

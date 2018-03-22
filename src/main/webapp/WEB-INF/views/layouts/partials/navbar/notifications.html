@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head><body><div th:fragment="content" th:remove="tag">
+
+
+    <li class="purple dropdown-modal">
+        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+            <i class="ace-icon fa fa-bell icon-animated-bell"></i>
+            <span class="badge badge-important" th:text="${#lists.size(aceadmin.notifications)}">10</span>
+        </a>
+        <ul class="dropdown-menu-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-close">
+            <li class="dropdown-header">
+                <i class="ace-icon fa fa-exclamation-triangle"></i> <span th:text="${#lists.size(aceadmin.notifications)}"></span> Notifications
+            </li>
+
+            <li class="dropdown-content">
+                <ul class="dropdown-menu dropdown-navbar navbar-pink">
+
+
+
+                    <!-- navbar_notifications item -->
+                    <li th:each="notification,iterStat : ${aceadmin.notifications}" th:if="${iterStat.count <= aceadmin.appSettings.navbar_notifications_limit}">
+                        <a href="#">
+                            <div th:if="${notification.badge != null}" class="clearfix">
+                                <span class="pull-left"><i class="btn btn-xs no-hover" th:classappend="${notification.icon_class} + ' ' + ${notification.icon}"></i> <th:block th:text="${notification.title}" /></span>
+                                <span class="pull-right badge" th:classappend="${notification.badge_class}"><th:block th:text="${notification.badge}" /></span>
+                            </div>
+                            <div th:remove="tag" th:if="${notification.badge == null}">
+                                <i class="btn btn-xs" th:classappend="${notification.icon_class} + ' ' + ${notification.icon}"></i> <th:block th:text="${notification.title}" />
+                            </div>
+                        </a>
+                    </li>
+                    <!-- /navbar_notifications item -->
+
+
+
+                </ul>
+            </li>
+
+            <li class="dropdown-footer">
+                <a href="#">
+                    See all notifications
+                    <i class="ace-icon fa fa-arrow-right"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
+</div>
+
+
+
+
+</body>
+</html>

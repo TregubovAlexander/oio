@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+
+
+<div th:fragment="content" th:remove="tag">
+    <li th:class="${item.item_class != null} ? ${item.item_class} : ''" th:classappend="(${aceadmin.page.horizontal_menu} ? 'hover ' : '')"><!-- print class name (active, open, etc) if it exists -->
+        <a href="#" th:href="@{'/' + ${item.link}}" th:class="${item.submenu} ? 'dropdown-toggle' : '' ">
+            <i class="menu-icon" th:classappend="${item.icon}"></i>
+
+
+
+
+            <!-- level-1 -->
+            <th:block th:utext="${level == 1} ? '<span class=\'menu-text\'>' : ''" />
+            <!-- /level-1 -->
+	            <!-- #level-2 --><!-- if this item is level-2 and no icon assigned to it, use this icon -->
+		        <i th:if="(${level == 2}) and (${item.icon != null} or ${item.icon != ''})" class="menu-icon fa fa-caret-right"></i>
+                <!-- /level-2 -->
+                <th:block th:text="${item.title}" />
+                <!-- #section:basics/sidebar.layout.badge -->
+                <span th:if="${item.badge != null}" class="badge" th:classappend="${item.badge_class} + ' ' + ${item.tooltip_class}" th:title="${item.tooltip}" th:utext="${item.badge}"></span>
+                <!-- /section:basics/sidebar.layout.badge -->
+                <span class="label" th:classappend="${item.label_class}" th:title="${item.label_title}" th:utext="${item.label}"></span>
+            <!-- level-1 -->
+            <th:block th:utext="${level == 1} ? '</span>' : ''"/>
+            <!-- /level-1 -->
+
+
+
+
+
+            <b class="arrow fa fa-angle-down" th:if="${item.submenu != null}"></b>
+        </a>
+        <b class="arrow"></b>
+
+        <!-- if we have submenu items, print them recursively -->
+        <ul class="submenu" th:if="${item.submenu != null}">
+            <div th:remove="tag" th:each="item : ${item.submenu}" th:include="layouts/partials/sidebar/item :: content"  th:with="level=${level + 1}"></div>
+        </ul>
+    </li>
+</div>
+
+
+
+
+</body>
+</html>

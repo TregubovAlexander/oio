@@ -1,0 +1,4 @@
+INSERT INTO oio_db.users (username, password, enabled, personId) VALUES ('admin', '$2a$04$Ig9jD2dw5T6UFOQEtAVCXeMnMO.rE0/96czEIfZVB0JNfrFzNh4vW', 1, 1);
+INSERT INTO oio_db.users (username, password, enabled, personId) VALUES ('alex', '$2a$04$Umr9La2Xy13D0Ht2xRUnUuhIktI7nLao61efm1YtnZZq9u6GUYyUC', 1, 1);
+INSERT INTO oio_db.users (username, password, enabled, personId) VALUES ('Вася', '$2a$04$Ig9jD2dw5T6UFOQEtAVCXeMnMO.rE0/96czEIfZVB0JNfrFzNh4vW', 1, 0);
+INSERT INTO oio_db.users (username, password, enabled, personId) VALUES ('Гена', '$2a$04$Ig9jD2dw5T6UFOQEtAVCXeMnMO.rE0/96czEIfZVB0JNfrFzNh4vW', 1, 2);

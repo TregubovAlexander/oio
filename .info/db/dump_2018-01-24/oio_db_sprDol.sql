@@ -1,0 +1,11 @@
+INSERT INTO oio_db.sprDol (name) VALUES ('Ведущий инженер-программист');
+INSERT INTO oio_db.sprDol (name) VALUES ('Директор вычислительного центра');
+INSERT INTO oio_db.sprDol (name) VALUES ('Инженер');
+INSERT INTO oio_db.sprDol (name) VALUES ('Инженер по защите информации');
+INSERT INTO oio_db.sprDol (name) VALUES ('Инженер-программист');
+INSERT INTO oio_db.sprDol (name) VALUES ('Инженер-электроник');
+INSERT INTO oio_db.sprDol (name) VALUES ('Начальник отдела информатизации');
+INSERT INTO oio_db.sprDol (name) VALUES ('Программист');
+INSERT INTO oio_db.sprDol (name) VALUES ('Системный администратор');
+INSERT INTO oio_db.sprDol (name) VALUES ('Техник');
+INSERT INTO oio_db.sprDol (name) VALUES ('Техник-программист');

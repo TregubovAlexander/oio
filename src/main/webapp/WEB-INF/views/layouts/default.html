@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      th:with="minified=${''}" ><!-- "minified=${'.min'}" -->
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta charset="utf-8" />
+    <title th:text="${aceadmin.page.title} + '-' + ${aceadmin.site.title}">Заголовок страницы</title>
+    <meta name="description" content="Описание страницы" th:content="${aceadmin.page.description}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="../../../resources/css/bootstrap.css" th:href="@{/resources/css/bootstrap{min}.css(min=${minified})}"/>
+    <link rel="stylesheet" href="../../../resources/components/font-awesome/css/font-awesome.css" th:href="@{/resources/components/font-awesome/css/font-awesome{min}.css(min=${minified})}"/>
+
+    <!-- page specific plugin styles -->
+    <link rel="stylesheet" th:each="style : ${aceadmin.page.styles}" href="#" th:href="@{'/resources/' + ${style}}" />
+
+    <!-- text fonts -->
+    <link rel="stylesheet" href="../../../resources/css/ace-fonts.css" th:href="@{/resources/css/ace-fonts{min}.css(min=${minified})}" />
+
+    <!-- ace styles -->
+    <link rel="stylesheet" href="../../../resources/css/ace.css" th:href="@{/resources/css/ace{min}.css(min=${minified})}" class="ace-main-stylesheet" id="main-ace-style" />
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="../../../resources/css/ace-part2.css" th:href="@{/resources/css/ace-part2{min}.css(min=${minified})}" class="ace-main-stylesheet" />
+    <![endif]-->
+    <link rel="stylesheet" href="../../../resources/css/ace-skins.css" th:href="@{/resources/css/ace-skins{min}.css(min=${minified})}" />
+    <link rel="stylesheet" href="../../../resources/css/ace-rtl.css" th:href="@{/resources/css/ace-rtl{min}.css(min=${minified})}" />
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="../../../resources/css/ace-ie.css" th:href="@{/resources/css/ace-ie{min}.css(min=${minified})}" />
+    <![endif]-->
+
+    <!-- Мои стили -->
+    <link rel="stylesheet" href="../../../resources/css/ru.elsu.oio.css" th:href="@{/resources/css/ru.elsu.oio{min}.css(min=${minified})}" />
+
+    <!-- inline styles related to this page -->
+    <style th:if="${aceadmin.page.inline_style != null}" th:text="${aceadmin.page.inline_style}"></style>
+
+    <!-- ace settings handler -->
+    <script src="../../../resources/js/ace-extra.js" th:src="@{/resources/js/ace-extra{min}.js(min=${minified})}"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src="../../../resources/html5shiv/dist/html5shiv.min.js" th:src="@{/resources/html5shiv/dist/html5shiv.min.js}"></script>
+    <script src="../../../resources/respond/dest/respond.min.js" th:src="@{/resources/respond/dest/respond.min.js}"></script>
+    <![endif]-->
+
+</head>
+
+<body class="no-skin">
+<div th:replace="layouts/partials/navbar :: content"></div>
+
+<div class="main-container ace-save-state" id="main-container">
+    <script type="text/javascript">
+        try{ace.settings.loadState('main-container')}catch(e){}
+    </script>
+
+    <div th:replace="layouts/partials/sidebar :: content"></div>
+
+    <div class="main-content"><div class="main-content-inner">
+        <!-- show breadcrumbs only if a "no-breadcrumbs" variable is "NOT" defined -->
+        <div th:if="${!aceadmin.page.no_breadcrumbs}" th:include="layouts/partials/breadcrumbs :: content" th:remove="tag"></div>
+
+        <div class="page-content">
+            <div th:replace="layouts/partials/settings :: content"></div>
+
+            <!-- if no such thing as "no-header", then print header -->
+            <div class="page-header" th:if="${!aceadmin.page.no_header}">
+                <h1><span th:text="${aceadmin.page.title}" th:remove="tag">Page title</span> <small th:if="${aceadmin.page.description != null}"><i class="ace-icon fa fa-angle-double-right"></i> <span th:text="${aceadmin.page.description}" th:remove="tag">Page description</small></h1>
+            </div><!-- /.page-header -->
+
+            <div class="row">
+                <div class="col-xs-12">
+                    <!-- PAGE CONTENT BEGINS -->
+
+                    <div th:replace="${view} :: content">
+                        page.content
+                    </div>
+
+                    <!-- PAGE CONTENT ENDS -->
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+
+        </div><!-- /.page-content -->
+    </div></div><!-- /.main-content -->
+
+    <div th:replace="layouts/partials/footer :: content"></div>
+
+    <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
+        <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
+    </a>
+</div><!-- /.main-container -->
+
+
+<!-- basic scripts -->
+<!--[if !IE]> -->
+<script src="../../../resources/components/jquery/dist/jquery.js" th:src="@{/resources/components/jquery/dist/jquery{min}.js(min=${minified})}"></script>
+<!-- <![endif]-->
+<!--[if IE]>
+<script src="../../../resources/components/jquery.1x/dist/jquery.js" th:src="@{/resources/components/jquery.1x/dist/jquery{min}.js(min=${minified})}"></script>
+<![endif]-->
+
+<script type="text/javascript" th:inline="javascript">
+    /*<![CDATA[*/
+    var scriptUrl = /*[[@{/resources/components/_mod/jquery.mobile.custom/jquery.mobile.custom{min}.js(min=${minified})}]]*/ '../../../resources/components/_mod/jquery.mobile.custom/jquery.mobile.custom.js';
+    if('ontouchstart' in document.documentElement) document.write("<script src='" + scriptUrl + "'><\/script>");
+    /*]]>*/
+</script>
+
+<script src="../../../resources/components/bootstrap/dist/js/bootstrap.js" th:src="@{/resources/components/bootstrap/dist/js/bootstrap{min}.js(min=${minified})}"></script>
+
+<!-- page specific plugin scripts -->
+<!-- put IE only scripts here, currently we only use ExCanvas.js from time to time -->
+<!-- Додумать как вставить сюда скрипты для нужной версии IE -->
+
+<th:block th:each="script : ${aceadmin.page.scripts}">
+    <script src="#" th:src="@{${(#strings.startsWith(script,'http'))?'':'/resources/'} + ${script}}"></script>
+</th:block>
+
+<!-- ace scripts -->
+<script src="../../../resources/js/ace-elements.js" th:src="@{/resources/js/ace-elements{min}.js(min=${minified})}"></script>
+<script src="../../../resources/js/ace.js" th:src="@{/resources/js/ace{min}.js(min=${minified})}"></script>
+
+<!-- Мои скрипты -->
+<script src="../../../resources/js/ru.elsu.oio.js" th:src="@{/resources/js/ru.elsu.oio.js}"></script>
+
+<!-- inline scripts related to this page -->
+<th:block th:insert="~{(${view} + '_js') :: content}" />
+
+</body>
+</html>

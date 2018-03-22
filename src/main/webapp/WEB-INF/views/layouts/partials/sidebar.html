@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+
+
+<div th:fragment="content" th:remove="tag">
+
+    <a th:if="${aceadmin.page.responsive_style_2}" href="#" class="menu-toggler invisible" id="menu-toggler" data-target="#sidebar"></a>
+    <!-- #section:basics/sidebar -->
+    <div id="sidebar" class="sidebar" th:classappend="(${aceadmin.page.horizontal_menu} ? 'h-sidebar ' : '') + (${!(aceadmin.page.side_menu_collapsible or aceadmin.page.responsive_style_2)} ? 'responsive ':'') + (${aceadmin.page.side_menu_collapsible} ? 'navbar-collapse collapse ' : '') + (${aceadmin.page.responsive_style_2} ? 'responsive-min ' : '') + 'ace-save-state'" >
+
+        <script type="text/javascript">
+            try{ace.settings.loadState('sidebar')}catch(e){}
+        </script>
+
+        <div th:replace="layouts/partials/sidebar/shortcuts :: content"></div>
+
+        <ul class="nav nav-list" th:with="level=0"> <!-- Переменная level определяет уровень пункта меню. Самый верхний = 1 -->
+            <!-- Формируем дерево sidebar_items -->
+            <div th:remove="tag" th:each="item : ${aceadmin.sidebarItems}" th:include="layouts/partials/sidebar/item :: content" th:with="level=${level + 1}"></div>
+        </ul><!-- /.nav-list -->
+
+        <!-- #section:basics/sidebar.layout.minimize -->
+        <div th:if="${!aceadmin.page.horizontal_menu}" class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+            <i id="sidebar-toggle-icon" class="ace-icon fa fa-angle-double-left ace-save-state" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
+        </div>
+        <!-- for expanding minimized menu in small devices -->
+        <div th:if="${!aceadmin.page.responsive_style_2}" class="sidebar-toggle sidebar-expand" id="sidebar-expand">
+            <i class="ace-icon fa fa-angle-double-right" data-icon1="ace-icon fa fa-angle-double-right" data-icon2="ace-icon fa fa-angle-double-left"></i>
+        </div>
+        <!-- /section:basics/sidebar.layout.minimize -->
+
+    </div>
+    <!-- /section:basics/sidebar -->
+
+</div>
+
+
+
+
+</body>
+</html>

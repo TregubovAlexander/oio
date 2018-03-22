@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head></head>
+<body>
+
+
+
+<div th:fragment="content" th:remove="tag">
+    <li class="light-blue dropdown-modal" th:classappend="${aceadmin.page.side_menu_collapsible} ? 'user-min' : ''">
+        <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+            <img class="nav-user-photo" src="../../../resources/avatars/user.jpg" th:src="@{/resources/avatars/user.jpg}" alt="Jason's Photo" />
+		<span class="user-info">
+			<small th:text="#{usermenu.welcome}+','">Привет,</small> <th:block sec:authentication="name" />
+		</span>
+            <i class="ace-icon fa fa-caret-down"></i>
+        </a>
+        <ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close" th:with="lang=(#{usermenu.lang})">
+            <li><a href="#" th:href="@{?lang={l}(l=${lang})}"><i class="ace-icon fa fa-language"></i> <th:block th:text="#{usermenu.lang.text}" /></a></li>
+            <li><a href="#"><i class="ace-icon fa fa-cog"></i> <th:block th:text="#{usermenu.settings}" /></a></li>
+            <li><a href="#"><i class="ace-icon fa fa-user"></i> <th:block th:text="#{usermenu.profile}" /></a></li>
+            <li class="divider"></li>
+            <li><a href="#" onclick="document.getElementById('logoutForm').submit(); return false"><i class="ace-icon fa fa-power-off"></i> <th:block th:text="#{usermenu.logout}" /></a></li>
+        </ul>
+    </li>
+
+    <form id="logoutForm" th:action="@{/logout}" method="post" th:hidden="true">
+        <input hidden type="submit" value="Logout"/>
+    </form>
+
+</div>
+
+
+
+
+</body>
+</html>

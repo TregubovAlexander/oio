@@ -1,0 +1,3 @@
+INSERT INTO oio_db.children (surname, name, patronymic, dr, gender, birthSertificate) VALUES ('Трегубов', 'Иван', 'Александрович', '2009-03-21', 'm', 'I-РД 671591');
+INSERT INTO oio_db.children (surname, name, patronymic, dr, gender, birthSertificate) VALUES ('Трегубова', 'Анна', 'Александровна', '2014-04-29', 'f', 'I-РД 794038');
+INSERT INTO oio_db.children (surname, name, patronymic, dr, gender, birthSertificate) VALUES ('Числов', 'Александр', 'Геннадиевич', '2004-03-22', 'm', 'I-РД 578329');

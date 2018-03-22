@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<body><div th:fragment="content" th:remove="tag">
+    <script type="text/javascript" th:inline="javascript">
+        /*<![CDATA[*/
+        jQuery(function ($) {
+            /* ****************************************************************************************************** */
+
+            /* Основная логика */
+            {
+                var person = {};
+
+                var $personEditForm = $('#personEditForm'),
+                    $postBlok = $('#personPost_'),
+                    $childrenBlok = $('#personChildren_'),
+                    $modalPostEdit = $('#modalPostEdit'),
+                    $formPostEdit = $('#formPostEdit'),
+                    $modalPostDateEnd = $('#modalPostDateEndInput'),
+                    $formPostDateEnd = $('#formPostDateEndInput'),
+                    $modalChildrenEdit = $('#modalChildrenEdit'),
+                    $formChildrenEdit = $('#formChildrenEdit'),
+                    $modalKladr = $('#modalKladr'),
+                    $formKladr = $('#formKladr'),
+                    $modalPasportEdit = $('#modalPasportEdit'),
+                    $formPasportEdit = $('#formPasportEdit');
+
+
+                var newPostId = 0;
+                var newChildrenId = 0;
+
+                var POST_DATE_END_NO_VALID_MSG = 'Дата окончания не может быть<br> меньше даты начала';
+
+                var PERSONS_URL = /*[[@{/persons/}]]*/'/persons/';
+                var PERSONS_API_URL = /*[[@{/api/persons/{id}(id=${person_id})}]]*/ 'http://localhost:8080/oio/api/persons/1';
+
+                // Загружаем сотрудника
+                var url = PERSONS_API_URL;
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (data) {
+                        person = data;
+                        setPersonEditFormFields(person);
+                    },
+                    error: function (err) {
+                        console.error("Не удалось загрузить информацию о сотруднике");
+                    }
+                });
+
+                // Заполнение всех полей формы редактирования сотрудника
+                var setPersonEditFormFields = function (person) {
+                    // Очищаем форму
+                    $personEditForm.trigger('reset');
+                    // ФИО, ДР, пол
+                    $('#personSurname', $personEditForm).val(person.surname);
+                    $('#personName', $personEditForm).val(person.name);
+                    $('#personPatronymic', $personEditForm).val(person.patronymic);
+                    $('#personDr', $personEditForm).val(person.dr);
+                    $('#personGender_' + person.gender, $personEditForm).prop('checked', true);
+                    // Контакты
+                    $('#personAddress', $personEditForm).val(person.address.text);
+                    $('#personMobilePhone', $personEditForm).val(person.mobilePhone);
+                    $('#personHomePhone', $personEditForm).val(person.homePhone);
+                    $('#personWorkPhone', $personEditForm).val(person.workPhone);
+                    $('.input-mask-mphone', $personEditForm).mask('+7 (999) 999-99-99');
+                    $('.input-mask-phone', $personEditForm).mask('9-99-99');
+                    $('#personEmail', $personEditForm).val(person.email);
+                    // Документы
+                    $('#personPasport', $personEditForm).val(getPasportText(person.pasport));
+                    // Сведения о занимаемой должности
+                    $postBlok.remove();
+                    for (var i in person.posts) {
+                        personAddPost(person.posts[i]);
+                    }
+                    $('#personDatPrin', $personEditForm).val(person.datPrin);
+                    $('#personTabNo', $personEditForm).val(person.tabNo);
+                    // Семейное положение
+                    $childrenBlok.remove();
+                    for (var i in person.childrens) {
+                        personAddChildren(person.childrens[i]);
+                    }
+                    if (person.semPol) $('#personSemPol', $personEditForm).attr('checked', true);
+                    // Дополнительные сведения
+                    $('#personDopsved', $personEditForm).html(person.dopsved);
+
+                    return false;
+                }
+
+                // Редактирование адреса
+                $('.addressEdit').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    setFormKladr(person.address);
+                    $modalKladr.modal();
+                })
+
+                // Редактирование паспорта
+                $('.pasportEdit').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    $formPasportEdit.find('#pasportSer').val(person.pasport.ser);
+                    $formPasportEdit.find('#pasportNum').val(person.pasport.num);
+                    $formPasportEdit.find('#pasportDat').val(person.pasport.dat);
+                    $formPasportEdit.find('#pasportOrg').val(person.pasport.org);
+                    $modalPasportEdit.modal();
+                })
+
+                // Клик по добавлению должности
+                $('a[href="#personPostAdd"]').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    $formPostEdit.trigger('reset');
+                    $('#postDol', $modalPostEdit).trigger('chosen:updated');
+                    $modalPostEdit.data('postId', newPostId - 1);
+                    $modalPostEdit.modal();
+                })
+
+                // Клик по добавлению ребенка
+                $('a[href="#personChildrenAdd"]').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    $formChildrenEdit.trigger('reset');
+                    $modalChildrenEdit.data('childrenId', newChildrenId - 1);
+                    $($modalChildrenEdit).modal();
+                })
+
+                // Формирование строки должности (для input)
+                var getPostText = function (post) {
+                    return post.dolName + "     (" + post.stavka + " ст.)";
+                }
+
+                // Формирование строки с ребенком (для input)
+                var getChildrenText = function (children) {
+                    return children.surname + ' ' + children.name + ' ' + children.patronymic + ',   (' + children.dr + ')';
+                }
+
+                // Формирование строки с паспортными данными
+                var getPasportText = function (pasport) {
+                    if (pasport.ser) {
+                        return pasport.ser + ' ' + pasport.num + ' выдан ' + pasport.dat + ' ' + pasport.org;
+                    } else return "";
+
+                }
+
+                // Удаление из массива сущности по ее id
+                var deleteFromArrayById = function (arr, id) {
+                    for (var i in arr) {
+                        if (arr[i].id == id) {
+                            arr.splice(i, 1);
+                            break;
+                        }
+                    }
+                    return false;
+                }
+
+                // Добавление элемента одной сущности (post или children) в блок
+                var personAddElement = function (name, obj) {
+                    var id = obj.id;
+                    var text, arr, fEdit, fDelete, fEditSelector;
+                    var $b;
+
+                    switch (name) {
+                        case 'post':
+                            $b = $postBlok;
+                            text = getPostText(obj);
+                            arr = person.posts;
+                            fEdit = function (e) {
+                                e.preventDefault();
+                                $modalPostEdit.data('postId', id);
+                                var post = $(this).parents('.elementContainer').data('post');
+                                var $c = $('#postDol', $modalPostEdit);
+                                $c.val(post.dolId).trigger('chosen:updated');
+                                $('#postDateBegin', $modalPostEdit).val(post.dateBegin);
+                                $('#postStavka', $modalPostEdit).val(post.stavka);
+                                $($modalPostEdit).modal();
+                            };
+                            fDelete = function (e) {
+                                e.preventDefault();
+                                var $pel = $(this).parents('.elementContainer');
+                                var d = $pel.data(name);
+                                if (d.id < 0) { // Если должность еще не добавлена, то просто удаляем из массива и удаляем элемент
+                                    deleteFromArrayById(arr, d.id);
+                                    $pel.remove();
+                                } else { // Иначе, получаем дату окончания должности (через модальное окно)
+                                    // Сначала устанавливаем параметры валидации даты - должна быть больше даты начала должности
+                                    $formPostDateEnd.data('id', id).data('formValidation')
+                                        .updateOption('postDateEnd', 'date', 'min', d.dateBegin)
+                                        .updateOption('postDateEnd', 'date', 'message', POST_DATE_END_NO_VALID_MSG + ' (' + d.dateBegin + ')');
+                                    $modalPostDateEnd.modal('show');
+                                }
+                            };
+                            fEditSelector = '.postEdit';
+                            break;
+                        case 'children':
+                            $b = $childrenBlok;
+                            text = getChildrenText(obj);
+                            arr = person.childrens;
+                            fEdit = function (e) {
+                                e.preventDefault();
+                                $modalChildrenEdit.data('childrenId', id);
+                                var ch = $(this).parents('.elementContainer').data('children');
+                                $formChildrenEdit.find('#chSurname').val(ch.surname);
+                                $formChildrenEdit.find('#chName').val(ch.name);
+                                $formChildrenEdit.find('#chPatronymic').val(ch.patronymic);
+                                $formChildrenEdit.find('#chDr').val(ch.dr);
+                                $formChildrenEdit.find('#chBirthSertificate').val(ch.birthSertificate.toLocaleUpperCase());
+                                $formChildrenEdit.find(':radio').attr('checked', false);
+                                $formChildrenEdit.find('#chGender_' + ch.gender).prop('checked', true);
+                                //$formChildrenEdit.find(':radio[name="chGender"]').filter('[value=' + ch.gender + ']').attr('checked', true);
+                                $($modalChildrenEdit).modal();
+                            };
+                            fDelete = function(e) {
+                                e.preventDefault();
+                                var $pel = $(this).parents('.elementContainer');
+                                var d = $pel.data(name);
+                                if (d.id < 0) { // Если ребенок еще не добавлен, то просто удаляем из массива и удаляем элемент
+                                    deleteFromArrayById(arr, d.id);
+                                    $pel.remove();
+                                } else {
+                                    // Иначе спрашиваем у пользователя, точно ли нужно удалять
+                                    swal({
+                                        title: "Внимание!",
+                                        text: "Вы действительно хотите удалить запись?",
+                                        type: "warning",
+                                        timer: 100000,
+                                        background:"#fcf8e3",
+                                        allowOutsideClick: false,
+                                        buttonsStyling: false,
+                                        confirmButtonText: "Удалить",
+                                        confirmButtonClass: "btn btn-lg btn-warning",
+                                        showCancelButton: true,
+                                        focusCancel: true,
+                                        cancelButtonText: "Отменить",
+                                        cancelButtonClass: "btn btn-lg btn-cancel"
+                                    }).then(function(){
+                                        // Удаляем ребенка - Меняем его фамилию на delete
+                                        for (var i in arr) {
+                                            if (arr[i].id == d.id) {
+                                                arr[i].surname = 'delete';
+                                                break;
+                                            }
+                                        }
+                                        $pel.remove();
+                                    }).catch(swal.noop);
+                                }
+                            };
+                            fEditSelector = '.childrenEdit';
+                            break;
+                    }
+
+                    var s = $b.attr('id');
+                    var $el = $b.clone();
+                    $el.addClass('elementContainer');
+                    $el.data(name, obj);
+                    $el.attr('id', s + id);
+                    $(':input', $el).val(text);
+                    $(fEditSelector, $el).off('click').on('click', fEdit);
+                    $(fEditSelector, $el).off('click').on('click', fEdit);
+                    $('a[href="#delete"]', $el).off('click').on('click', fDelete);
+                    $el.appendTo('#' + name + 'List');
+                    return false;
+                }
+
+                // Добавление должности
+                var personAddPost = function (post) {
+                    if (!post.active) return false;
+                    personAddElement('post', post);
+                    return false;
+                }
+
+                // Добавление ребенка
+                var personAddChildren = function (children) {
+                    personAddElement('children', children);
+                    return false;
+                }
+
+                // Сохраняем должность/ребенка
+                var personSaveElement = function (name) {
+                    var arr, $m, id, d, newId, $el, text;
+                    var d = null;
+
+                    switch (name) {
+                        case 'post':
+                            arr = person.posts;
+                            $m = $modalPostEdit;
+                            id = $m.data('postId');
+                            newId = newPostId;
+                            $el = $('#personPost_' + id, $personEditForm);
+
+                            // Формируем JSON с должностью
+                            var $c = $('#postDol', $m);
+                            d = {"id": id};
+                            d.dolId = $c.val();
+                            d.dolName = $('option:selected', $c).text();
+                            d.dateBegin = $('#postDateBegin', $m).val();
+                            d.dateEnd = null;
+                            d.stavka = $('#postStavka', $m).val();
+                            d.active = true;
+
+                            text = getPostText(d);
+                            break;
+                        case 'children':
+                            arr = person.childrens;
+                            $m = $modalChildrenEdit;
+                            id = $m.data('childrenId');
+                            newId = newChildrenId;
+                            $el = $('#personChildren_' + id, $personEditForm);
+
+                            // Формируем JSON с ребенком
+                            d = {"id": id};
+                            d.surname = $formChildrenEdit.find('#chSurname').val();
+                            d.name = $formChildrenEdit.find('#chName').val();
+                            d.patronymic = $formChildrenEdit.find('#chPatronymic').val();
+                            d.dr = $formChildrenEdit.find('#chDr').val();
+                            d.birthSertificate = $formChildrenEdit.find('#chBirthSertificate').val().toLocaleUpperCase();
+                            d.gender = $formChildrenEdit.find('input[name="chGender"]:checked').val();
+//alert(JSON.stringify(d, null, '\t')); // TODO: убрать
+                            text = getChildrenText(d);
+                            break;
+                    }
+//alert(JSON.stringify(arr, null, '\t')); // TODO: убрать
+
+                    // Изменяем массив
+                    if (id > newId - 1) deleteFromArrayById(arr, id);
+                    arr.push(d);
+
+                    // Меняем текст или добавляем элемент должности
+                    if (id > newId - 1) {
+                        $el.data(name, d);
+                        $(':input', $el).val(text);
+                    } else {
+                        personAddElement(name, d);
+
+                        switch (name) {
+                            case 'post':
+                                newPostId--;
+                                break;
+                            case 'children':
+                                newChildrenId--;
+                                break;
+                        }
+                    }
+                    $m.modal('hide');
+                    return false;
+                }
+
+                // Сохраняем сотрудника (всю форму)
+                // PUT на адрес /api/persons/{id} c JSON person в теле запроса
+                var personSave = function () {
+
+                    // Собираем изменения формы в JSON person
+                    {
+                        person.surname = $('#personSurname', $personEditForm).val();
+                        person.name = $('#personName', $personEditForm).val();
+                        person.patronymic = $('#personPatronymic', $personEditForm).val();
+                        person.dr = $('#personDr', $personEditForm).val();
+                        person.gender = $personEditForm.find('input[name="personGender"]:checked').val();
+                        person.mobilePhone = $('#personMobilePhone', $personEditForm).val();
+                        person.homePhone = $('#personHomePhone', $personEditForm).val();
+                        person.workPhone = $('#personWorkPhone', $personEditForm).val();
+                        person.email = $('#personEmail', $personEditForm).val();
+                        person.datPrin = $('#personDatPrin', $personEditForm).val();
+                        person.tabNo = $('#personTabNo', $personEditForm).val();
+                        person.semPol = $('#personSemPol', $personEditForm).prop('checked');
+                        person.dopsved = $('#personDopsved', $personEditForm).html();
+                    }
+                    //console.log(JSON.stringify(person, null, '\t')); // TODO: убрать
+
+                    var deferred = null;
+
+                    // Необходимо для того, чтобы Spring Sequrity разрешал PUT Ajax запросы , если включена защита CSRF
+                    var csrfToken = $('meta[name="_csrf"]').attr('content');
+                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+                    deferred = $.ajax({
+                        url: PERSONS_API_URL,
+                        type: 'PUT',
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json',
+                        data: JSON.stringify(person),
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    })
+
+                    return deferred.promise();
+                }
+
+            }
+
+
+            /* Валидация форм */
+            {
+                // Валидация формы редактирования должности
+                {
+                    $formPostEdit.formValidation({
+                        framework: 'bootstrap',
+                        excluded: ':disabled',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Все поля обязательны для заполнения',
+                        fields: {
+                            postDol: { validators: { notEmpty: {} } },
+                            postDateBegin: { validators: { notEmpty: {} } },
+                            postStavka: {
+                                validators: {
+                                    notEmpty: {},
+                                    callback: {
+                                        message: 'Ставка указана неверно',
+                                        callback: function (value, validator, $field) {
+                                            var a = [0.25, 0.5, 0.75, 1, 1.25, 1.5];
+                                            var v = $.trim($field.val());
+                                            return ($.inArray(+v, a) !== -1);
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            personSaveElement('post');
+                            return false;
+                        }
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $modalPostEdit.on('dp.change', function(e) {
+                        $formPostEdit.formValidation('revalidateField', 'postDateBegin');
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalPostEdit.on('hide.bs.modal', function (e) {
+                        $formPostEdit.data('formValidation').resetForm(true);
+                    });
+
+                }
+
+                // Валидация формы ввода даты окончания должности
+                {
+                    $formPostDateEnd.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        fields: {
+                            postDateEnd: {
+                                validators: {
+                                    notEmpty: {
+                                        message: 'Поле обязательно для заполнения'
+                                    },
+                                    date: {
+                                        format: 'YYYY-MM-DD',
+                                        min: '1900-01-01',
+                                        message: POST_DATE_END_NO_VALID_MSG
+                                    }
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            // Удаление должности по id
+                            var id = $(e.target).data('id');
+                            var $el = $('#personPost_' + id, $personEditForm);
+                            var p = $el.data('post');
+
+                            var postDateEnd = $('#postDateEnd', $modalPostDateEnd).val();
+                            $modalPostDateEnd.modal('hide');
+
+                            p.dateEnd = postDateEnd;
+                            p.active = false;
+                            deleteFromArrayById(person.posts, p.id);
+                            person.posts.push(p);
+                            $el.remove();
+//alert(JSON.stringify(person.posts, null, '\t')); // TODO: убрать
+                            return false;
+                        }
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $modalPostDateEnd.on('dp.change', function(e) {
+                        $formPostDateEnd.formValidation('revalidateField', 'postDateEnd');
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalPostDateEnd.on('hide.bs.modal', function (e) {
+                        $formPostDateEnd.data('formValidation').resetForm(true);
+                    })
+                }
+
+                // Валидация формы редактирования ребенка
+                {
+                    // IMPORTANT: on('init.field.fv') must be declared before calling .formValidation(...)
+                    $formChildrenEdit.on('init.field.fv', function(e, data) {
+                        // $(e.target)  --> The field element
+                        // data.fv      --> The FormValidation instance
+                        // data.field   --> The field name
+                        // data.element --> The field element
+
+                        if (data.field === 'chGender') {
+                            var $parent = data.element.parents('.form-group'),
+                                $icon   = data.element.data('fv.icon'),
+                                $el = $parent.find('.iconPlace');
+                            $icon.insertAfter($el);
+                        }
+
+                    })
+
+                    $formChildrenEdit.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            chSurname: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+[-|\s]?[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы и один дефис или пробел в качестве разделителя)'
+                                    }
+
+                                }
+                            },
+                            chName: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы)'
+                                    }
+
+                                }
+                            },
+                            chPatronymic: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы)'
+                                    }
+
+                                }
+                            },
+                            chDr: { validators: {notEmpty: {} }},
+                            chBirthSertificate: {
+                                validators: {
+                                    regexp: {
+                                        regexp: /^M{0,3}(D?C{0,3}|C[DM])(L?X{0,3}|X[LC])(V?I{0,3}|I[VX])((?!^)-)?[\u0410-\u044F]{2}\s\d{6}$/i,
+                                        message: 'Свидетельство о рождении введено неверно<br>Формат: римское число дефис две русские буквы пробел шесть цифр'
+                                    }
+                                }
+                            },
+                            'chGender': {
+                                validators: {
+                                    notEmpty: {
+                                        message: 'Пол необходимо указать'
+                                    }
+                                }
+                            }
+
+
+
+
+                        },
+                        onSuccess: function(e) {
+                            personSaveElement('children');
+                            return false;
+                        }
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $modalChildrenEdit.on('dp.change', function(e) {
+                        $formChildrenEdit.formValidation('revalidateField', 'chDr');
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalChildrenEdit.on('hide.bs.modal', function (e) {
+                        $formChildrenEdit.data('formValidation').resetForm(true);
+                    });
+
+                }
+
+                // Валидация формы редактирования адреса
+                {
+                    $formKladr.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            kladrCity:     { validators: { notEmpty: {} } },
+                            kladrBuilding: { validators: { notEmpty: {} } }
+                        },
+                        onSuccess: function(e) {
+                            // Сохраняем адрес
+                            person.address = {}; // Сбрасываем
+                            // Регион
+                            var regionKladr = $region.kladr('current');
+                            if (regionKladr) {
+                                person.address.region = regionKladr.name;
+                            } else {
+                                person.address.region = $.trim($region.val());
+                            }
+                            // Район
+                            var districtKladr = $district.kladr('current');
+                            if (districtKladr) {
+                                person.address.district = districtKladr.name;
+                            } else {
+                                person.address.district = $.trim($district.val());
+                            }
+                            // Город
+                            var cityKladr = $city.kladr('current');
+                            if (cityKladr) {
+                                person.address.city = cityKladr.name;
+                            } else {
+                                person.address.city = $.trim($city.val());
+                            }
+                            // Улица (streetId, street)
+                            var streetKladr = $street.kladr('current');
+                            if (streetKladr) {
+                                person.address.streetId = streetKladr.id;
+                                person.address.street = streetKladr.name;
+                            } else {
+                                person.address.street = $.trim($street.val());
+                            }
+                            // Здание (building, zip)
+                            var buildingKladr = $building.kladr('current');
+                            if (buildingKladr) {
+                                person.address.building = buildingKladr.name;
+                                person.address.zip = buildingKladr.zip;
+                            } else {
+                                person.address.building = $.trim($building.val());
+                            }
+                            // Квартира
+                            person.address.kvartira = $kvartira.val();
+                            // Текст
+                            person.address.text = $address.val();
+//alert(JSON.stringify(person.address, null, '\t')); // TODO: убрать
+                            $('#personAddress', $personEditForm).val(person.address.text);
+                            $modalKladr.modal('hide');
+                            return false;
+                        }
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalKladr.on('hide.bs.modal', function (e) {
+                        $formKladr.data('formValidation').resetForm(true);
+                    });
+                }
+
+                // Валидация формы редактирования паспорта
+                {
+                    $formPasportEdit.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        err: {
+                            container: '#errMessages'
+                        },
+                        message: 'Все поля обязательны для заполнения',
+                        fields: {
+                            pasportSer:     { validators: { notEmpty: {} } },
+                            pasportNum:     { validators: { notEmpty: {} } },
+                            pasportDat:     { validators: { notEmpty: {} } },
+                            pasportOrg:     { validators: { notEmpty: {} } }
+                        },
+                        onSuccess: function(e) {
+                            // Сохраняем паспорт
+                            person.pasport = {}; // Сбрасываем
+                            person.pasport.ser = $.trim($formPasportEdit.find('#pasportSer').val());
+                            person.pasport.num = $.trim($formPasportEdit.find('#pasportNum').val());
+                            person.pasport.dat = $.trim($formPasportEdit.find('#pasportDat').val());
+                            person.pasport.org = $.trim($formPasportEdit.find('#pasportOrg').val());
+                            $('#personPasport', $personEditForm).val(getPasportText(person.pasport));
+                            $modalPasportEdit.modal('hide');
+                            return false;
+                        }
+                    }).on('err.field.fv', function(e, data) {
+                        // $(e.target)  --> The field element
+                        // data.fv      --> The FormValidation instance
+                        // data.field   --> The field name
+                        // data.element --> The field element
+
+                        data.element.data('fv.messages').find('.help-block[data-fv-for="' + data.field + '"]').hide();
+                        data.element.data('fv.messages').find('.help-block:first').show();
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $modalPasportEdit.on('dp.change', function(e) {
+                        $formPasportEdit.formValidation('revalidateField', 'pasportDat');
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalPasportEdit.on('hide.bs.modal', function (e) {
+                        $formPasportEdit.data('formValidation').resetForm(true);
+                    });
+                }
+
+                // Валидация формы редактирования сотрудника (основная форма)
+                {
+                    $personEditForm.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            personSurname: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+[-|\s]?[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы и один дефис или пробел в качестве разделителя)'
+                                    }
+
+                                }
+                            },
+                            personName: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы)'
+                                    }
+
+                                }
+                            },
+                            personPatronymic: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы)'
+                                    }
+
+                                }
+                            },
+                            personDr: {validators: {notEmpty: {}}}
+                        },
+                        onSuccess: function (e) {
+                            // Сохраняем сотрудника
+                            personSave()
+                                .always(function (result) {
+                                    var newUrl = location.href.replace(location.search, '');
+
+                                    $.showUserMessage(
+                                        result,
+                                        'Сохранено!',
+                                        'Данные успешно переданы на сервер!',
+                                        'Ошибка сохранения!',
+                                        function(){
+                                            location.assign(newUrl);
+                                        });
+
+                                    //  Ревалидация формы
+                                    $personEditForm.formValidation('revalidateField', 'personDr');
+                                });
+
+                            // Ревалидация поля даты после обновления значения в дейтпикере
+                            $('#personDr').on('dp.change', function (e) {
+                                $personEditForm.formValidation('revalidateField', 'personDr');
+                            });
+                        }
+                    });
+                }
+
+
+            }
+
+
+            /* Настройка элементов страницы */
+            {
+                // Активация вкладки "редактирование" если получен параметр запроса action=edit
+                if (location.search.indexOf('action=edit') + 1) {
+                    $('#personTab a[href="#editing"]').tab('show');
+                }
+
+                // Настраиваем datepicker-ы
+                $('.date').datetimepicker({
+                    locale: 'ru',
+                    format: 'YYYY-MM-DD',
+                    showClear: true,
+                    showTodayButton: true
+                }).next().on(ace.click_event, function(){
+                    $(this).prev().focus();
+                });
+
+                // Настраиваем easy-pie-chart
+                $('.easy-pie-chart.percentage').each(function(){
+                    var barColor = $(this).data('color') || '#555';
+                    var trackColor = '#E2E2E2';
+                    var size = parseInt($(this).data('size')) || 72;
+                    $(this).easyPieChart({
+                        barColor: barColor,
+                        trackColor: trackColor,
+                        scaleColor: false,
+                        lineCap: 'butt',
+                        lineWidth: parseInt(size/10),
+                        animate:false,
+                        size: size
+                    }).css('color', barColor);
+                });
+
+                // Отображение окна редактирования должности
+                $($modalPostEdit).on("shown.bs.modal", function (e) {
+                    $('#postDol').chosen().change(function(e) {
+                        $formPostEdit.formValidation('revalidateField', 'postDol');
+                    });;
+                });
+
+
+
+            }
+
+
+            /* Поддержка редактора wysiwyg */
+            {
+                function showErrorAlert (reason, detail) {
+                    var msg='';
+                    if (reason==='unsupported-file-type') { msg = "Неподдерживаемый формат " + detail; }
+                    else {
+                        console.error("Ошибка загрузки файла", reason, detail);
+                    }
+                    $('<div class="alert"> <button type="button" class="close" data-dismiss="alert">&times;</button>'+
+                        '<strong>Ошибка загрузки файла</strong> '+msg+' </div>').prependTo('#alerts');
+                }
+
+                $('.wysiwyg-editor').ace_wysiwyg({
+                    toolbar:
+                        [
+                            {name:'font',title:'Шрифт'},
+                            null,
+                            {
+                                name:'fontSize',title:'Размер шрифта',
+                                values:{1 : 'Маленький' , 3 : 'Обычный' , 5 : 'Большой'}
+                            },
+                            null,
+                            {name:'bold', className:'btn-info',title:'Полужирный (Ctrl+B)'},
+                            {name:'italic', className:'btn-info',title:'Курсив (Ctrl+I)'},
+                            {name:'underline', className:'btn-info',title:'Подчеркнутый (Ctrl+U)'},
+                            null,
+                            {name:'insertunorderedlist', className:'btn-success',title:'Маркированный список'},
+                            {name:'insertorderedlist', className:'btn-success', title:'Нумерованный список'},
+                            {name:'outdent', className:'btn-purple',title:'Уменьшить отступ (Shift+Tab)'},
+                            {name:'indent', className:'btn-purple',title:'Увеличить отступ (Tab)'},
+                            null,
+                            {name:'justifyleft', className:'btn-primary', title:'По левому краю (Ctrl+L)'},
+                            {name:'justifycenter', className:'btn-primary', title:'По центру (Ctrl+E)'},
+                            {name:'justifyright', className:'btn-primary', title:'По правому краю (Ctrl+R)'},
+                            {name:'justifyfull', className:'btn-inverse', title:'По ширине (Ctrl+J)'},
+                            null,
+                            {name:'createLink', className:'btn-pink', title:'Вставить гиперссылку'},
+                            {name:'unlink', className:'btn-pink', title:'Удалить гиперссылку'},
+                            null,
+                            {name:'foreColor',title:'Изменить цвет'},
+                            null,
+                            {name:'undo', className:'btn-grey', title:'Отменить (Ctrl+Z)'},
+                            {name:'redo', className:'btn-grey', title:'Вернуть (Ctrl+Y)'},
+                            null,
+                            {name:'viewSource',title:'В формате HTML'}
+                        ],
+                    'wysiwyg': {
+                        fileUploadError: showErrorAlert
+                    }
+                }).prev().addClass('wysiwyg-style2');
+
+                var toolbar = $('.wysiwyg-editor').prev().get(0);
+                toolbar.className = toolbar.className.replace(/wysiwyg\-style(1|2)/g , '');
+                $(toolbar).find('.btn-group > .btn').addClass('btn-white btn-round');
+
+
+            }
+
+
+            /* Редактирование фото */
+            {
+
+                $.fn.editable.defaults.mode = 'inline';
+//                $.fn.editableform.loading = "<div class='editableform-loading'><i class='light-blue ace-icon fa fa-spinner fa-2x fa-pulse'></i></div>";
+//                $.fn.editableform.buttons = '<button type="submit" class="btn btn-info editable-submit"><i class="ace-icon fa fa-check icon-white"></i></button><button type="button" class="btn editable-cancel"><i class="ace-icon fa fa-remove"></i></button>';
+
+                try {// ie8 throws some harmless exceptions, so let's catch'em
+
+                    // first let's add a fake appendChild method for Image element for browsers that have a problem with this
+                    // because editable plugin calls appendChild, and it causes errors on IE at unpredicted points
+                    try {
+                        document.createElement('IMG').appendChild(document.createElement('B'));
+                    } catch(e) {
+                        Image.prototype.appendChild = function(el){}
+                    }
+
+                    var last_gritter;
+                    $('#personPhoto').editable({
+                        type: 'image',
+                        name: 'personPhoto',
+                        value: null,
+                        //onblur: 'ignore',  //don't reset or hide editable onblur?!
+                        image: {
+                            // specify ace file input plugin's options here
+                            btn_choose: 'Выберите фото',
+                            droppable: true,
+                            //ext: "jpe?g", // используется при составлении регулярных выражений вида  /\.(jpe?g|png|gif)$/i  и   /^image\/(jpe?g|png|gif)$/i. По-умолчанию: jpe?g|png|gif
+                            max_size: 512000, // 500Kb
+
+                            // and a few extra ones here
+                            name: 'personPhoto',// put the field name here as well, will be used inside the custom plugin
+                            on_error : function(error_type) {// on_error function will be called when the selected file has a problem
+                                if(last_gritter) $.gritter.remove(last_gritter);
+                                if(error_type == 1) {// file format error
+                                    last_gritter = $.gritter.add({
+                                        title: 'Данный формат не поддерживается!',
+                                        text: 'Выберите изображение формата JPEG !',
+                                        time: 2000,
+                                        class_name: 'gritter-error gritter-center'
+                                    });
+                                } else if(error_type == 2) {// file size error
+                                    last_gritter = $.gritter.add({
+                                        title: 'Файл слишком большой!',
+                                        text: 'Размер файла изображения не должен превышать 500Кб!',
+                                        time: 2000,
+                                        class_name: 'gritter-error gritter-center'
+                                    });
+                                }
+                                else {// other error
+                                    last_gritter = $.gritter.add({
+                                        title: 'Ошибка загрузки изображения!',
+                                        text: 'Произошла непредвиденная ошибка. Обратитесь к разработчику!',
+                                        time: 2000,
+                                        class_name: 'gritter-error gritter-center'
+                                    });
+                                }
+                            },
+                            on_success : function() {
+                                $.gritter.removeAll();
+                            }
+                        },
+                        url: function(params) {
+                            var submit_url = PERSONS_API_URL + '/uploadphoto';
+                            var deferred = null;
+                            var $avatar = $('#personPhoto');
+
+                            // if value is empty (""), it means no valid files were selected but it may still be submitted by x-editable plugin
+                            // because "" (empty string) is different from previous non-empty value whatever it was so we return just here to prevent problems
+                            var value = $avatar.next().find('input[type=hidden]:eq(0)').val();
+                            if(!value || value.length == 0) {
+                                deferred = new $.Deferred;
+                                deferred.resolve();
+                                return deferred.promise();
+                            }
+                            var $form = $avatar.next().find('.editableform:eq(0)');
+                            var file_input = $form.find('input[type=file]:eq(0)');
+                            var pk = $avatar.attr('data-pk'); // primary key to be sent to server
+
+                            var ie_timeout = null;
+
+                            if( "FormData" in window ) {
+                                var formData_object = new FormData(); // create empty FormData object
+
+                                // serialize our form (which excludes file inputs)
+                                $.each($form.serializeArray(), function(i, item) {
+                                    // add them one by one to our FormData
+                                    formData_object.append(item.name, item.value);
+                                });
+                                // and then add files
+                                $form.find('input[type=file]').each(function(){
+                                    var field_name = $(this).attr('name');
+                                    var files = $(this).data('ace_input_files');
+                                    if(files && files.length > 0) {
+                                        formData_object.append(field_name, files[0]);
+                                    }
+                                });
+
+                                // append primary key to our formData
+                                formData_object.append('pk', pk);
+
+                                // Необходимо для того, чтобы Spring Sequrity разрешал Post Ajax запросы , если включена защита CSRF
+                                var csrfToken = $('meta[name="_csrf"]').attr('content');
+                                var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+                                deferred = $.ajax({
+                                    url: submit_url,
+                                    type: 'POST',
+                                    processData: false, // important
+                                    contentType: false, // important
+                                    dataType: 'json',   // server response type
+                                    data: formData_object,
+                                    beforeSend: function(xhr) {
+                                        xhr.setRequestHeader(csrfHeader, csrfToken);
+                                    }
+                                })
+                            }
+                            else {
+                                deferred = new $.Deferred
+
+                                var temporary_iframe_id = 'temporary-iframe-'+(new Date()).getTime()+'-'+(parseInt(Math.random()*1000));
+                                var temp_iframe =
+                                    $('<iframe id="'+temporary_iframe_id+'" name="'+temporary_iframe_id+'" rameborder="0" width="0" height="0" src="about:blank" style="position:absolute; z-index:-1; visibility: hidden;"></iframe>')
+                                        .insertAfter($form);
+
+                                $form.append('<input type="hidden" name="temporary-iframe-id" value="'+temporary_iframe_id+'" />');
+
+                                // append primary key (pk) to our form
+                                $('<input type="hidden" name="pk" />').val(pk).appendTo($form);
+
+                                temp_iframe.data('deferrer' , deferred);
+                                // we save the deferred object to the iframe and in our server side response
+                                // we use "temporary-iframe-id" to access iframe and its deferred object
+
+                                $form.attr({
+                                    action: submit_url,
+                                    method: 'POST',
+                                    enctype: 'multipart/form-data',
+                                    target: temporary_iframe_id // important
+                                });
+
+                                $form.get(0).submit();
+
+                                // if we don't receive any response after 30 seconds, declare it as failed!
+                                ie_timeout = setTimeout(function(){
+                                    ie_timeout = null;
+                                    temp_iframe.attr('src', 'about:blank').remove();
+                                    deferred.reject({'status':'fail', 'message':'Timeout!'});
+                                } , 30000);
+                            }
+
+                            // deferred callbacks, triggered by both ajax and iframe solution
+                            deferred
+                                .done(function(result) { // success
+                                    var res = result; //result[0]; // the `result` is formatted by your server side response and is arbitrary
+                                    if(res.status == 'OK') {
+                                        var newSrc = '/oio/api/getphoto/' + person.id + '?timestamp=' + new Date().getTime(); // Такая страшная конструкция для того, чтобы менялся URL, иначе браузер не будет обновлять картинку
+                                        $avatar.get(0).src = newSrc;
+                                        $('#personPhotoMain').get(0).src = newSrc;
+                                        if(last_gritter) $.gritter.remove(last_gritter);
+                                        last_gritter = $.gritter.add({
+                                            title: 'Фотография добавлена!',
+                                            text: 'Фото сотрудника успешно загружено на сервер!',
+                                            time: 800,
+                                            class_name: 'gritter-info gritter-center'
+                                        });
+                                    } else {
+                                        if(last_gritter) $.gritter.remove(last_gritter);
+                                        last_gritter = $.gritter.add({
+                                            title: 'Ошибка загрузки изображения!',
+                                            text: res.message,
+                                            time: 2000,
+                                            class_name: 'gritter-error gritter-center'
+                                        });
+                                    }
+                                })
+                                .fail(function(result) { // failure
+                                    if(last_gritter) $.gritter.remove(last_gritter);
+                                    last_gritter = $.gritter.add({
+                                        title: 'Ошибка!',
+                                        text: 'Возникла ошибка при загрузке изображения!',
+                                        time: 2000,
+                                        class_name: 'gritter-error gritter-center'
+                                    });
+                                })
+                                .always(function() { // called on both success and failure
+                                    if(ie_timeout) clearTimeout(ie_timeout);
+                                    ie_timeout = null;
+                                });
+
+                            return deferred.promise();
+
+                        },
+                        success: function(response, newValue) {
+                        }
+                    })
+                }catch(e) {}
+            }
+
+
+            /* kladr-api */
+            {
+
+                var $formKladr = $('#formKladr');
+
+                var $region = $('#kladrRegion', $formKladr),
+                    $district = $('#kladrDistrict', $formKladr),
+                    $city = $('#kladrCity', $formKladr),
+                    $street = $('#kladrStreet', $formKladr),
+                    $building = $('#kladrBuilding', $formKladr),
+                    $kvartira = $('#kladrKvartira', $formKladr),
+                    $address = $('#kladrAddress', $formKladr);
+
+                var map = null,
+                    map_created = false;
+
+                $.kladr.setDefault({
+                    parentInput: '#formKladr',
+                    verify: true,
+                    spinner: true,
+                    labelFormat: function (obj, query) {
+                        var label = '';
+
+                        var name = obj.name.toLowerCase();
+                        query = query.name.toLowerCase();
+
+                        var start = name.indexOf(query);
+                        start = start > 0 ? start : 0;
+
+                        if (obj.typeShort) {
+                            label += obj.typeShort + '. ';
+                        }
+
+                        if (query.length < obj.name.length) {
+                            label += obj.name.substr(0, start);
+                            label += '<strong>' + obj.name.substr(start, query.length) + '</strong>';
+                            label += obj.name.substr(start + query.length, obj.name.length - query.length - start);
+                        } else {
+                            label += '<strong>' + obj.name + '</strong>';
+                        }
+
+                        if (obj.parents) {
+                            for (var k = obj.parents.length - 1; k > -1; k--) {
+                                var parent = obj.parents[k];
+                                if (parent.name) {
+                                    if (label) label += '<small>, </small>';
+                                    label += '<small>' + parent.name + ' ' + parent.typeShort + '.</small>';
+                                }
+                            }
+                        }
+
+                        return label;
+                    },
+                    change: function (obj) {
+                        if (obj) {
+                            setLabel($(this), obj.type);
+                        }
+                        addressUpdate();
+                        mapUpdate();
+                    },
+                    checkBefore: function () {
+                        var $input = $(this);
+                        if (!$.trim($input.val())) {
+                            addressUpdate();
+                            mapUpdate();
+                            return false;
+                        }
+                    }
+                });
+
+                $region.kladr('type', $.kladr.type.region);
+                $district.kladr('type', $.kladr.type.district);
+                $city.kladr('type', $.kladr.type.city);
+                $street.kladr('type', $.kladr.type.street);
+                $building.kladr('type', $.kladr.type.building);
+                $building.kladr('parentType', $.kladr.type.street);
+
+                // Включаем получение родительских объектов для населённых пунктов
+                $city.kladr('withParents', true);
+                $street.kladr('withParents', true);
+
+                // Отключаем проверку введённых данных для строений
+                $building.kladr('verify', false);
+
+                // Настраиваем карту
+                ymaps.ready(function () {
+                    if (map_created) return;
+                    map_created = true;
+
+                    map = new ymaps.Map('kladrMap', {
+                        center: [52.613518, 38.522859],
+                        zoom: 11,
+                        controls: []
+                    });
+
+                    map.controls.add('zoomControl', {
+                        position: {
+                            right: 10,
+                            top: 10
+                        }
+                    });
+                });
+
+                function setLabel($input, text) {
+                    text = text.charAt(0).toUpperCase() + text.substr(1).toLowerCase();
+                    $input.closest('.form-group').find('label').text(text);
+                }
+
+                function mapUpdate() {
+
+                    var zoom = 4;
+
+                    var address = $.kladr.getAddress($formKladr, function (objs) {
+                        var result = '';
+
+                        $.each(objs, function (i, obj) {
+                            var name = '',
+                                type = '';
+
+                            if ($.type(obj) === 'object') {
+                                name = obj.name;
+                                type = ' ' + obj.type;
+
+                                switch (obj.contentType) {
+                                    case $.kladr.type.region:
+                                        zoom = 4;
+                                        break;
+
+                                    case $.kladr.type.district:
+                                        zoom = 7;
+                                        break;
+
+                                    case $.kladr.type.city:
+                                        zoom = 10;
+                                        break;
+
+                                    case $.kladr.type.street:
+                                        zoom = 13;
+                                        break;
+
+                                    case $.kladr.type.building:
+                                        zoom = 16;
+                                        break;
+                                }
+                            }
+                            else {
+                                name = obj;
+                            }
+
+                            if (result) result += ', ';
+                            result += type + name;
+                        });
+
+                        return result;
+                    });
+
+                    if (address && map_created) {
+                        var geocode = ymaps.geocode(address);
+                        geocode.then(function (res) {
+                            map.geoObjects.each(function (geoObject) {
+                                map.geoObjects.remove(geoObject);
+                            });
+
+                            var position = res.geoObjects.get(0).geometry.getCoordinates(),
+                                placemark = new ymaps.Placemark(position, {}, {});
+
+                            map.geoObjects.add(placemark);
+                            map.setCenter(position, zoom);
+                        });
+                    }
+                }
+
+                function addressUpdate() {
+                    var adr = $.kladr.getAddress($formKladr);
+                    var kv = $.trim($kvartira.val());
+                    if (kv) adr += ', кв. ' + kv;
+                    $address.val(adr);
+                }
+
+                // Очищаем или заполняем поля формы ввода адреса
+                var setFormKladr = function(address){
+                    // Сначала все очищаем ...
+                    $region.kladr('controller').clear();
+                    $district.kladr('controller').clear();
+                    $city.kladr('controller').clear();
+                    $street.kladr('controller').clear();
+                    $building.kladr('controller').clear();
+                    $kvartira.val('');
+                    $address.val('');
+                    map.setCenter([52.613518, 38.522859],11); // Елец
+
+                    // ... А потом, если указан адрес, заполняем форму
+                    if (address) {
+                        // Если есть ID улицы, то получаем все данные адреса из КЛАДРА
+                        var id = $.trim(address.streetId);
+                        if (id) {
+                            var apiQuery = {
+                                'contentType': 'street',
+                                'streetId': id,
+                                'withParent': '1',
+                                'limit': '1'
+                            };
+                            $.getJSON($.kladr.url + "?callback=?", apiQuery)
+                                .done(function(data) {
+                                    var a = data.result[0];
+                                    if (a) {
+                                        var p = a.parents;
+
+                                        var v = {};
+                                        for (var i in p) {
+                                            v[p[i].contentType] = p[i].name;
+                                        }
+                                        v.street = a.name;
+                                        v.building = address.building;
+
+                                        $.kladr.setValues(v, $formKladr);
+                                        $kvartira.val(address.kvartira);
+                                        mapUpdate();
+                                        addressUpdate();
+                                    }
+                                });
+                        } else {
+                            // Если нет ID улицы, то заполняем из БД тем, что есть
+                            $region.val(address.region);
+                            $district.val(address.district);
+                            $city.val(address.city);
+                            $street.val(address.street);
+                            $city.trigger('change');
+                            $building.val(address.building);
+                            $building.trigger('change');
+                            $kvartira.val(address.kvartira);
+                            $address.val(address.text);
+                            mapUpdate();
+                        }
+                    }
+
+                }
+
+                // Разрешаем в поле квартиры вводить только цифры
+                // Обновляем адрес при смене квартиры
+                $kvartira.on('change keyup input click', function () {
+                    if (this.value.match(/[^0-9]/g)) {
+                        this.value = this.value.replace(/[^0-9]/g, '');
+                    }
+                    addressUpdate();
+                });
+
+            }
+
+
+
+
+            /* ****************************************************************************************************** */
+        });
+
+        /*]]>*/
+    </script>
+</div></body></html>

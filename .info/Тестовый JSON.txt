@@ -1,0 +1,117 @@
+alert(JSON.stringify(result, null, '\t')); // TODO: убрать
+
+console.log(JSON.stringify(person, null, '\t')); // TODO: убрать
+
+
+
+
+{
+	"name":"Александр",
+	"surname":"Трегубов",
+	"dr":"1979-10-24",
+	"gender":"m",
+	"homePhone":"45021",
+	"workPhone":"6-09-72",
+	"email":"tregubo@elsu.ru",
+	"posts" : [ 
+		{
+    		"id" : 1,
+    		"dolId" : 1,
+    		"dolName" : "Начальник отдела информатизации",
+    		"dateBegin" : "2016-12-31",
+    		"dateEnd" : "",
+    		"stavka" : "1.0",
+    		"active" : true
+		}, 
+		{
+    		"id" : 2,
+    		"dolId" : 11,
+    		"dolName" : "Директор вычислительного центра",
+    		"dateBegin" : "2014-01-09",
+    		"dateEnd" : "2016-12-19",
+    		"stavka" : 2.0,
+    		"active" : false
+		}
+	],
+	"datPrin":"2001-10-02",
+	"tabNo":"111",
+	"semPol":"true",
+	"dopsved":"Дополнительные <b>сведения&nbsp;</b><div><b>о&nbsp;</b><b>сотруднике&nbsp;&nbsp;</b><b>в <font size=\"1\">формате </font><font color=\"#f83a22\" size=\"5\">HTML</font></b></div><div><ol><li><font size=\"3\" color=\"#16a765\"><b style=\"\">Первый&nbsp;</b></font></li><li><font size=\"3\" color=\"#16a765\"><b>Второй&nbsp;</b></font></li><li><font size=\"3\" color=\"#16a765\"><b style=\"\">Третий</b></font></li></ol><font color=\"#16a765\" size=\"3\"><b>Гиперссылка<span style=\"background-color: rgb(169, 169, 169);\">&nbsp;</span></b></font><b><font size=\"3\"><a href=\"http://www.elsu.ru/\">http://www.elsu.ru</a></font></b></div><div><font face=\"Verdana\" size=\"3\" style=\"\"><b><u>Обновленные данные</u></b></font></div><div><b><br></b></div>"
+}     
+
+
+
+
+
+
+
+
+
+
+
+
+"posts" : [ {
+    "id" : 1,
+    "dolId" : 1,
+    "dolName" : "Начальник отдела информатизации",
+    "dateBegin" : "2016-12-20",
+    "dateEnd" : "",
+    "stavka" : 1.0,
+    "active" : true
+  }, {
+    "id" : 2,
+    "dolId" : 11,
+    "dolName" : "Директор вычислительного центра",
+    "dateBegin" : "2014-01-09",
+    "dateEnd" : "2016-12-19",
+    "stavka" : 1.0,
+    "active" : false
+  }, {
+    "id" : 3,
+    "dolId" : 7,
+    "dolName" : "Программист",
+    "dateBegin" : "2002-10-01",
+    "dateEnd" : "2014-01-08",
+    "stavka" : 1.0,
+    "active" : false
+  } ],
+
+
+
+
+
+              
+
+{
+	"name":"Александр",
+	"surname":"Трегубов",
+	"dr":"1979-10-24",
+	"gender":"m",
+	"homePhone":"45021",
+	"workPhone":"6-09-72",
+	"email":"tregubo@elsu.ru",
+	"posts" : [ 
+		{
+    		"id" : 1,
+    		"dolId" : 1,
+    		"dolName" : "Начальник отдела информатизации",
+    		"dateBegin" : "2017-01-01",
+    		"dateEnd" : "",
+    		"stavka" : "0.75",
+    		"active" : true
+		}, 
+		{
+    		"id" : 2,
+    		"dolId" : 11,
+    		"dolName" : "Директор вычислительного центра",
+    		"dateBegin" : "2005-01-01",
+    		"dateEnd" : "2010-12-31",
+    		"stavka" : 0.25,
+    		"active" : false
+		}
+	],
+	"datPrin":"2001-10-02",
+	"tabNo":"111",
+	"semPol":"true",
+	"dopsved":"Дополнительные <b>сведения&nbsp;</b><div><b>о&nbsp;</b><b>сотруднике&nbsp;&nbsp;</b><b>в <font size=\"1\">формате </font><font color=\"#f83a22\" size=\"5\">HTML</font></b></div><div><ol><li><font size=\"3\" color=\"#16a765\"><b style=\"\">Первый&nbsp;</b></font></li><li><font size=\"3\" color=\"#16a765\"><b>Второй&nbsp;</b></font></li><li><font size=\"3\" color=\"#16a765\"><b style=\"\">Третий</b></font></li></ol><font color=\"#16a765\" size=\"3\"><b>Гиперссылка<span style=\"background-color: rgb(169, 169, 169);\">&nbsp;</span></b></font><b><font size=\"3\"><a href=\"http://www.elsu.ru/\">http://www.elsu.ru</a></font></b></div><div><font face=\"Verdana\" size=\"3\" style=\"\"><b><u>Обновленные данные</u></b></font></div><div><b><br></b></div>"
+}      

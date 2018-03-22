@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head><body><div th:fragment="content" th:remove="tag">
+
+
+
+    <li class="green dropdown-modal">
+        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+            <i class="ace-icon fa fa-envelope icon-animated-vertical"></i>
+            <span class="badge badge-success" th:text="${#lists.size(aceadmin.messages)}">10</span>
+        </a>
+        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
+            <li class="dropdown-header">
+                <i class="ace-icon fa fa-envelope-o"></i> <span th:text="${#lists.size(aceadmin.messages)}"></span> Messages
+            </li>
+
+            <li class="dropdown-content">
+                <ul class="dropdown-menu dropdown-navbar">
+
+
+                    <!-- navbar_messages item -->
+                    <li th:each="message,iterStat : ${aceadmin.messages}" th:if="${iterStat.count <= aceadmin.appSettings.navbar_messages_limit}">
+                        <a href="#" class="clearfix">
+                            <img src="../../../resources/avatars/avatar.png" class="msg-photo" th:src="@{/resources/avatars/{img}(img=${message.img})}">
+						<span class="msg-body">
+							<span class="msg-title">
+								<span class="blue" th:text="${message.name} + ':'">Имя:</span>
+								<th:block th:text="${message.summary}" />
+							</span>
+							<span class="msg-time">
+								<i class="ace-icon fa fa-clock-o"></i> <span th:text="${message.time}"></span>
+							</span>
+						</span>
+                        </a>
+                    </li>
+                    <!-- /navbar_messages item -->
+
+
+                </ul>
+            </li>
+
+            <li class="dropdown-footer">
+                <a href="#">
+                    See all messages
+                    <i class="ace-icon fa fa-arrow-right"></i>
+                </a>
+            </li>
+
+        </ul>
+    </li>
+
+
+</div></body></html>

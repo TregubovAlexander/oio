@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"><head>
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="../../resources/css/bootstrap.css" />
+    <link rel="stylesheet" href="../../resources/components/font-awesome/css/font-awesome.css" />
+    <!-- text fonts -->
+    <link rel="stylesheet" href="../../resources/css/ace-fonts.css" />
+    <!-- ace styles -->
+    <link rel="stylesheet" href="../../resources/css/ace.css" class="ace-main-stylesheet" id="main-ace-style" />
+    <link rel="stylesheet" href="../../resources/css/ace-skins.css" />
+    <link rel="stylesheet" href="../../resources/css/ace-rtl.css" />
+</head><body><div th:fragment="content" th:remove="tag">
+
+
+
+
+    <div class="tabbable">
+
+        <!-- Заголовки вкладок -->
+        <ul class="nav nav-tabs" id="personTab">
+            <li class="active">
+                <a data-toggle="tab" href="#base">
+                    <i class="pink ace-icon fa fa-user bigger-120"></i> Основные сведения
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#additional">
+                    <i class="blue ace-icon fa fa-vcard bigger-120"></i> Дополнительные сведения
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#editing">
+                    <i class="green ace-icon fa fa-edit bigger-120"></i> Редактирование
+                </a>
+            </li>
+        </ul><!-- /Заголовки вкладок -->
+
+        <!-- Содержимое вкладок -->
+        <div class="tab-content padding-24">
+
+            <!-- Основные сведения -->
+            <div id="base" class="tab-pane fade in active">
+
+                <div class="row">
+
+                    <!-- Фото -->
+                    <div class="col-xs-12 col-sm-3 center">
+                        <span class="profile-picture width-200px">
+                            <img class="editable img-responsive" th:alt="${person.fullName}" id="personPhotoMain"
+                                 th:src="@{/api/getphoto/{id}(id=${person_id})}"
+                                 th:onerror="'this.src=\'' + @{/api/getphoto/0} + '\';'" />
+                        </span>
+                        <div class="space space-4"></div>
+
+                        <a href="#" class="btn btn-sm btn-block btn-success">
+                            <i class="ace-icon fa fa-plus-circle bigger-120"></i>
+                            <span class="bigger-110">Добавить в друзья</span>
+                        </a>
+                        <a href="#" class="btn btn-sm btn-block btn-primary">
+                            <i class="ace-icon fa fa-envelope-o bigger-110"></i>
+                            <span class="bigger-110">Отправить сообщение</span>
+                        </a>
+                    </div>
+
+                    <!-- Анкетные данные-->
+                    <div class="col-xs-12 col-sm-9">
+
+                        <h4 class="blue">
+                            <span class="middle" th:text="${person.getFullName()}">ФИО</span>
+
+                            <span class="label label-purple arrowed-in-right">
+                                <i class="ace-icon fa fa-circle smaller-80 align-middle"></i>online
+                            </span>
+                        </h4>
+
+                        <div class="profile-user-info">
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name"> Должность </div>
+                                <div class="profile-info-value">
+                                    <span th:each="post : ${person.postList}" th:if="${post.active}" th:text="${post.dol.name} + ' (' + ${post.stavka} + ' ст.)'">Инженер</span>
+                                </div>
+                            </div><!-- Должность -->
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name"> Телефон </div>
+                                <div class="profile-info-value">
+                                    <i class="fa fa-mobile purple bigger-150"></i>
+                                    <span th:text="${person.mobilePhone}">8-905-1234567</span>
+                                    &emsp;
+                                    <i class="fa fa-phone blue bigger-120"></i>
+                                    <span th:text="${person.workPhone}">6-09-72</span>
+                                </div>
+                            </div><!-- Телефоны -->
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name"> Возраст </div>
+                                <div class="profile-info-value">
+                                    <span th:text="${person_age}">30</span>
+                                </div>
+                            </div><!-- Возраст -->
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name"> E-mail </div>
+                                <div class="profile-info-value">
+                                    <span th:text="${person.email}">mail@mail.ru</span>
+                                </div>
+                            </div><!-- E-mail -->
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name"> Дата принятия </div>
+                                <div class="profile-info-value">
+                                    <span th:text="${person.datPrin}">1970-01-01</span>
+                                </div>
+                            </div><!-- Дата принятия -->
+
+                        </div>
+
+                        <div class="hr hr-8 dotted"></div>
+
+                        <div class="profile-user-info">
+                            <div class="profile-info-row">
+                                <div class="profile-info-name"> Website </div>
+                                <div class="profile-info-value">
+                                    <a href="#" target="_blank">www.alexdoe.com</a>
+                                </div>
+                            </div>
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name">
+                                    <i class="middle ace-icon fa fa-facebook-square bigger-150 blue"></i>
+                                </div>
+
+                                <div class="profile-info-value">
+                                    <a href="#">Find me on Facebook</a>
+                                </div>
+                            </div>
+
+                            <div class="profile-info-row">
+                                <div class="profile-info-name">
+                                    <i class="middle ace-icon fa fa-twitter-square bigger-150 light-blue"></i>
+                                </div>
+
+                                <div class="profile-info-value">
+                                    <a href="#">Follow me on Twitter</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- /Анкетные данные-->
+
+                </div><!-- Фото и анкетные данные -->
+
+                <div class="space-20"></div>
+
+                <div class="row">
+
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="widget-box transparent">
+                            <div class="widget-header widget-header-small">
+                                <h4 class="widget-title smaller">
+                                    <i class="ace-icon fa fa-check-square-o bigger-110"></i>
+                                    Кратко о себе
+                                </h4>
+                            </div>
+
+                            <div class="widget-body">
+                                <div class="widget-main">
+                                    <p>
+                                        My job is mostly lorem ipsuming and dolor sit ameting as long as consectetur adipiscing elit.
+                                    </p>
+                                    <p>
+                                        Sometimes quisque commodo massa gets in the way and sed ipsum porttitor facilisis.
+                                    </p>
+                                    <p>
+                                        The best thing about my job is that vestibulum id ligula porta felis euismod and nullam quis risus eget urna mollis ornare.
+                                    </p>
+                                    <p>
+                                        Thanks for visiting my profile.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="widget-box transparent">
+                            <div class="widget-header widget-header-small header-color-blue2">
+                                <h4 class="widget-title smaller">
+                                    <i class="ace-icon fa fa-lightbulb-o bigger-120"></i>
+                                    Профессиональные навыки
+                                </h4>
+                            </div>
+
+                            <div class="widget-body">
+                                <div class="widget-main padding-16">
+                                    <div class="clearfix">
+                                        <div class="grid3 center">
+                                            <!-- #section:plugins/charts.easypiechart -->
+                                            <div class="easy-pie-chart percentage" data-percent="45" data-color="#CA5952">
+                                                <span class="percent">45</span>%
+                                            </div>
+
+                                            <!-- /section:plugins/charts.easypiechart -->
+                                            <div class="space-2"></div>
+                                            Graphic Design
+                                        </div>
+
+                                        <div class="grid3 center">
+                                            <div class="center easy-pie-chart percentage" data-percent="90" data-color="#59A84B">
+                                                <span class="percent">90</span>%
+                                            </div>
+
+                                            <div class="space-2"></div>
+                                            HTML5 & CSS3
+                                        </div>
+
+                                        <div class="grid3 center">
+                                            <div class="center easy-pie-chart percentage" data-percent="80" data-color="#9585BF">
+                                                <span class="percent">80</span>%
+                                            </div>
+
+                                            <div class="space-2"></div>
+                                            Javascript/jQuery
+                                        </div>
+                                    </div>
+
+                                    <div class="hr hr-16"></div>
+
+                                    <!-- #section:pages/profile.skill-progress -->
+                                    <div class="profile-skills">
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width:80%">
+                                                <span class="pull-left">HTML5 & CSS3</span>
+                                                <span class="pull-right">80%</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-success" style="width:72%">
+                                                <span class="pull-left">Javascript & jQuery</span>
+
+                                                <span class="pull-right">72%</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-purple" style="width:70%">
+                                                <span class="pull-left">PHP & MySQL</span>
+
+                                                <span class="pull-right">70%</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-warning" style="width:50%">
+                                                <span class="pull-left">Wordpress</span>
+
+                                                <span class="pull-right">50%</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress">
+                                            <div class="progress-bar progress-bar-danger" style="width:38%">
+                                                <span class="pull-left">Photoshop</span>
+
+                                                <span class="pull-right">38%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- /section:pages/profile.skill-progress -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+            </div><!-- /Основные сведения -->
+
+            <!-- Дополнительные сведения -->
+            <div id="additional" class="tab-pane fade">
+
+            </div><!-- /Дополнительные сведения -->
+
+            <!-- Редактирование -->
+            <div id="editing" class="tab-pane fade">
+
+                <form id="personEditForm" class="form-horizontal compact-5">
+
+                    <div class="row">
+
+                        <div class="col-xs-12 col-sm-3">
+                            <span class="profile-picture width-150px height-200px">
+                                <img class="editable img-responsive" th:alt="${person.getFullName()}" id="personPhoto" name="personPhoto"
+                                     th:src="@{/api/getphoto/{person_id}(person_id=${person.id})}"
+                                     th:onerror="'this.src=\'' + @{/api/getphoto/0} + '\';'" />
+                            </span>
+                        </div><!-- Фото -->
+
+                        <div class="col-xs-12 col-sm-8">
+
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right" for="personSurname">Фамилия</label>
+                                <div class="col-sm-8">
+                                    <input class="col-xs-12" type="text" id="personSurname" name="personSurname" />
+                                </div>
+                            </div><!-- Фамилия -->
+                            <div class="space-2"></div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right" for="personName">Имя</label>
+                                <div class="col-sm-8">
+                                    <input class="input-xxlarge" type="text" id="personName" name="personName" />
+                                </div>
+                            </div><!-- Имя -->
+                            <div class="space-2"></div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right" for="personPatronymic">Отчество</label>
+                                <div class="col-sm-8">
+                                    <input class="input-xxlarge" type="text" id="personPatronymic" name="personPatronymic" />
+                                </div>
+                            </div><!-- Отчество -->
+                            <div class="space-2"></div>
+
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right" for="personDr">Дата рождения</label>
+                                <div class="col-sm-8">
+                                    <div class="input-medium">
+                                        <div class="input-group">
+                                            <input class="input-large date" id="personDr" name="personDr" type="text" placeholder="гггг-мм-дд" />
+                                            <span class="input-group-addon">
+                                                <i class="ace-icon fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><!-- Дата рождения -->
+                            <div class="space-2"></div>
+
+                            <div class="form-check form-check-inline">
+                                <label class="col-sm-3 control-label no-padding-right">Пол</label>
+                                <div class="col-sm-9">
+                                    <label class="inline">
+                                        <input id="personGender_f" name="personGender" type="radio" value="f" class="ace" />
+                                        <span class="lbl"> Женский</span>
+                                    </label>
+                                    &nbsp; &nbsp; &nbsp;
+                                    <label class="inline">
+                                        <input id="personGender_m" name="personGender" type="radio"  value="m" class="ace" />
+                                        <span class="lbl"> Мужской</span>
+                                    </label>
+                                </div>
+                            </div><!-- Пол -->
+
+                        </div><!-- ФИО ДР Пол-->
+
+                    </div><!-- ФОТО, ФИО, ДР, Пол-->
+
+                    <h4 class="header blue bolder smaller">Контакты</h4>
+                    <div class="row">
+                        <div class="col-xs-12">
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label no-padding-right" for="personAddress">Адрес</label>
+                                <div class="col-sm-9">
+                                    <span class="block input-icon input-icon-right addressEdit">
+                                        <input class="width-100" type="text" id="personAddress" readonly="true" />
+                                        <i class="ace-icon fa fa-globe"></i>
+                                    </span>
+                                </div>
+                                <div class="col-sm-1">
+                                    <div class="hidden-md hidden-sm hidden-xs action-buttons">
+                                        <a class="green addressEdit" href="#edit"><i class="ace-icon fa fa-pencil bigger-160"></i></a>
+                                    </div>
+                                </div>
+                            </div><!-- Адрес -->
+                            <div class="space-2"></div>
+
+                            <div class="row">
+                                <label class="col-sm-2 control-label no-padding-right" >Телефоны:</label>
+                                <div class="col-sm-9">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-lg-5">
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label no-padding-right" for="personMobilePhone">мобильный</label>
+                                                <div class="col-sm-8">
+                                                    <span class="input-icon input-icon-right">
+                                                        <input class="width-100 input-mask-mphone" type="text" id="personMobilePhone" />
+                                                        <i class="ace-icon fa fa-phone fa-flip-horizontal"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-lg-7">
+                                            <div class="row">
+                                                <div class="col-sm-6 col-xs-12">
+                                                    <div class="form-group">
+                                                        <label class="col-sm-5 control-label no-padding-right" for="personHomePhone">домашний</label>
+                                                        <div class="col-sm-7">
+                                                            <span class="input-icon input-icon-right">
+                                                                <input class="input-small input-mask-phone" type="text" id="personHomePhone" />
+                                                                <i class="ace-icon fa fa-phone fa-flip-horizontal"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6 col-xs-12">
+                                                    <div class="form-group">
+                                                        <label class="col-sm-4 control-label no-padding-right" for="personWorkPhone">рабочий</label>
+                                                        <div class="col-sm-8">
+                                                            <span class="input-icon input-icon-right">
+                                                                <input class="width-100 input-mask-phone" type="text" id="personWorkPhone" />
+                                                                <i class="ace-icon fa fa-phone fa-flip-horizontal"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><!-- Телефоны -->
+                            <div class="space-2"></div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label no-padding-right" for="personEmail">E-mail</label>
+                                <div class="col-sm-7">
+                                    <span class="block input-icon input-icon-right">
+                                        <input class="width-100" type="email" id="personEmail" />
+                                        <i class="ace-icon fa fa-envelope"></i>
+                                    </span>
+                                </div>
+                            </div><!-- E-mail -->
+
+                        </div>
+                    </div>
+
+                    <h4 class="header blue bolder smaller">Документы</h4>
+                    <div class="row">
+                        <div class="col-xs-12">
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label no-padding-right" for="personPasport">Паспорт</label>
+                                <div class="col-sm-9">
+                                    <span class="block input-icon input-icon-right pasportEdit">
+                                        <input class="width-100" type="text" id="personPasport" readonly="true" />
+                                        <i class="ace-icon fa fa-id-card"></i>
+                                    </span>
+                                </div>
+                                <div class="col-sm-1">
+                                    <div class="hidden-md hidden-sm hidden-xs action-buttons">
+                                        <a class="green pasportEdit" href="#edit"><i class="ace-icon fa fa-pencil bigger-160"></i></a>
+                                    </div>
+                                </div>
+                            </div><!-- Адрес -->
+                            <div class="space-2"></div>
+
+                        </div>
+                    </div>
+
+                    <h4 class="header blue bolder smaller">Сведения о занимаемой должности</h4>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label no-padding-right">Должность</label>
+                                <div class="col-sm-10" id="postList">
+
+                                    <!-- Одна запись о должности -->
+                                    <div class="form-group" id="personPost_">
+                                        <div class="col-sm-10">
+                                            <span class="block input-icon input-icon-right postEdit">
+                                                <input class="width-100" type="text" readonly="true" />
+                                                <i class="ace-icon fa fa-ellipsis-h"></i>
+                                            </span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="hidden-md hidden-sm hidden-xs action-buttons">
+                                                <a class="green postEdit" href="#edit"><i class="ace-icon fa fa-pencil bigger-160"></i></a>
+                                                <a class="red" href="#delete"><i class="ace-icon fa fa-trash-o bigger-160"></i></a>
+                                            </div>
+                                            <div class="hidden-lg control-label">
+                                                <div class="inline pos-rel">
+                                                    <button class="btn btn-minier btn-yellow dropdown-toggle" data-toggle="dropdown" data-position="auto">
+                                                        <i class="ace-icon fa fa-caret-down icon-only bigger-160"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-menu-right dropdown-caret dropdown-close">
+                                                        <li>
+                                                            <a href="#edit" class="tooltip-success" data-rel="tooltip">
+                                                                <span class="green"><i class="ace-icon fa fa-pencil-square-o bigger-160"></i></span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#delete" class="tooltip-error" data-rel="tooltip">
+                                                                <span class="red"><i class="ace-icon fa fa-trash-o bigger-160"></i></span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div><!-- Кнопки управления -->
+                                    </div>
+                                    <div class="space-2"></div>
+                                    <!-- / Одна запись о должности -->
+
+                                </div>
+                            </div><!-- Должности -->
+                            <div class="form-group">
+                                <div class="pull-left col-lg-offset-2 col-lg-9">
+                                    <i class="ace-icon fa fa-hand-o-right green bigger-125"></i>
+                                    <a href="#personPostAdd" role="button" class="bigger-110">Добавить должность</a>
+                                </div>
+                            </div><!-- Кнопка добавления должности -->
+                            <div class="space-8"></div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label no-padding-right" for="personDatPrin">Дата принятия</label>
+                                <div class="col-sm-4">
+                                    <div class="input-medium">
+                                        <div class="input-group">
+                                            <input class="input-large date" id="personDatPrin" type="text" placeholder="гггг-мм-дд" />
+                                            <span class="input-group-addon">
+                                                <i class="ace-icon fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <label class="col-sm-3 control-label no-padding-right" for="personTabNo">Табельный номер</label>
+                                <div class="col-sm-2">
+                                    <input class="width-100" type="text" id="personTabNo" />
+                                </div>
+                            </div><!-- Дата принятия и табельный номер -->
+
+                        </div>
+                    </div>
+
+                    <h4 class="header blue bolder smaller">Семейное положение</h4>
+                    <div class="row">
+                        <div class="col-xs-12">
+
+                            <div class="form-group">
+                                <div class="col-sm-9 col-sm-offset-2">
+                                    <div>
+                                        <label class="inline">
+                                            <input type="checkbox" id="personSemPol" class="ace" />
+                                            <span class="lbl"> состоит в браке </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div><!-- Холост/женат -->
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label no-padding-right">Дети:</label>
+                                <div class="col-sm-10" id="childrenList">
+
+                                    <!-- Одна запись о ребенке -->
+                                    <div class="form-group" id="personChildren_">
+                                        <div class="col-sm-10">
+                                        <span class="block input-icon input-icon-right childrenEdit">
+                                            <input class="width-100" type="text" readonly="true" />
+                                            <i class="ace-icon fa fa-ellipsis-h"></i>
+                                        </span>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="hidden-md hidden-sm hidden-xs action-buttons">
+                                                <a class="green childrenEdit" href="#edit"><i class="ace-icon fa fa-pencil bigger-160"></i></a>
+                                                <a class="red" href="#delete"><i class="ace-icon fa fa-trash-o bigger-160"></i></a>
+                                            </div>
+                                            <div class="hidden-lg control-label">
+                                                <div class="inline pos-rel">
+                                                    <button class="btn btn-minier btn-yellow dropdown-toggle" data-toggle="dropdown" data-position="auto">
+                                                        <i class="ace-icon fa fa-caret-down icon-only bigger-160"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-menu-right dropdown-caret dropdown-close">
+                                                        <li>
+                                                            <a href="#edit" class="tooltip-success" data-rel="tooltip">
+                                                                <span class="green"><i class="ace-icon fa fa-pencil-square-o bigger-160"></i></span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#delete" class="tooltip-error" data-rel="tooltip">
+                                                                <span class="red"><i class="ace-icon fa fa-trash-o bigger-160"></i></span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div><!-- Кнопки управления -->
+                                    </div>
+                                    <div class="space-2"></div>
+                                    <!-- /Одна запись о ребенке -->
+
+
+                                </div>
+                            </div><!-- Дети -->
+                            <div class="form-group">
+                                <div class="pull-left col-lg-offset-2 col-lg-9">
+                                    <i class="ace-icon fa fa-hand-o-right green bigger-125"></i>
+                                    <a href="#personChildrenAdd" role="button" class="bigger-110">Добавить ребенка</a>
+                                </div>
+                            </div><!-- Кнопка добавления ребенка -->
+
+                        </div>
+                    </div>
+
+                    <h4 class="header blue bolder smaller">Дополнительные сведения</h4>
+                    <div class="row">
+                        <div class="col-xs-12 col-lg-10 col-lg-offset-1">
+                            <!-- Встраиваем wysiwyg-редактор -->
+                            <div class="wysiwyg-editor" id="personDopsved"></div>
+                        </div>
+                    </div>
+
+                    <div class="clearfix form-actions">
+                        <div class="col-xs-12 center">
+                            <button class="btn btn-info" type="submit">
+                                <i class="ace-icon fa fa-check bigger-110"></i>Сохранить
+                            </button>
+                        </div>
+                    </div><!-- Кнопка сохранения формы -->
+
+                </form>
+
+            </div><!-- /Редактирование -->
+
+        </div><!-- /Содержимое вкладок -->
+
+    </div>
+
+
+
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Добавление/Редактирование должности -->
+    <div id="modalPostEdit" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formPostEdit">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Должность</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+
+
+
+                            <div class="row">
+                                <!--<div class="space-8"></div>-->
+                                <div class="col-sm-12 col-lg-11 col-lg-offset-1">
+                                    <!-- Должность -->
+                                    <div class="form-group">
+                                            <select class="col-sm-11 chosen-select" id="postDol" name="postDol" data-placeholder="Выберите должность ...">
+                                                <option value=""></option>
+                                                <option th:each="dol : ${sprDol}" th:value="${dol.id}" th:text="${dol.name}">Должность</option>
+                                            </select>
+                                    </div>
+                                    <div class="space-2"></div>
+
+                                    <!-- Дата начала -->
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="postDateBegin">Дата вступления</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-medium">
+                                                <div class="input-group">
+                                                    <input class="input-medium date" id="postDateBegin" name="postDateBegin" type="text" placeholder="гггг-мм-дд" />
+                                                    <span class="input-group-addon">
+                                                        <i class="ace-icon fa fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- /Дата начала -->
+
+                                    <!-- Ставка -->
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="postStavka">Ставка</label>
+                                        <div class="col-sm-8">
+                                            <input class="input-small center" type="text" id="postStavka" name="postStavka" />
+                                        </div>
+                                    </div><!-- /Ставка -->
+
+
+                                </div>
+                            </div>
+
+
+
+
+
+
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalPostEdit -->
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Ввод даты удаления должности -->
+    <div id="modalPostDateEndInput" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formPostDateEndInput">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Удаление должности</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-12">
+                                    <!-- Дата окончания должности -->
+                                    <div class="form-group">
+                                        <label class="col-sm-5 control-label no-padding-right" for="postDateEnd">Введите дату окончания: </label>
+                                        <div class="col-sm-7">
+                                            <div class="input-medium">
+                                                <div class="input-group">
+                                                    <input class="input-medium date" type="text" id="postDateEnd" name="postDateEnd" placeholder="гггг-мм-дд" />
+                                                    <span class="input-group-addon">
+                                                        <i class="ace-icon fa fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- /Дата окончания должности -->
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalPostDateEndInput -->
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Редактирование ребенка -->
+    <div id="modalChildrenEdit" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formChildrenEdit">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Сведения о ребенке</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 col-lg-12">
+
+
+
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="chSurname">Фамилия</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-xlarge" type="text" id="chSurname" name="chSurname" />
+                                        </div>
+                                    </div><!-- Фамилия -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="chName">Имя</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-xlarge" type="text" id="chName" name="chName" />
+                                        </div>
+                                    </div><!-- Имя -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="chPatronymic">Отчество</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-xlarge" type="text" id="chPatronymic" name="chPatronymic" />
+                                        </div>
+                                    </div><!-- Отчество -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="chDr">Дата рождения: </label>
+                                        <div class="col-sm-7">
+                                            <div class="input-medium">
+                                                <div class="input-group">
+                                                    <input class="input-medium date" type="text" id="chDr" name="chDr" placeholder="гггг-мм-дд" />
+                                                    <span class="input-group-addon">
+                                                        <i class="ace-icon fa fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- Дата рождения -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="chBirthSertificate">Свидетельство о рождении</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-large" type="text" id="chBirthSertificate" name="chBirthSertificate" />
+                                        </div>
+                                    </div><!-- Свидетельство о рождении -->
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right">Пол</label>
+                                        <div class="col-sm-7">
+                                            <div class="col-sm-11 iconPlace">
+                                                <label class="inline">
+                                                    <input id="chGender_f" name="chGender" type="radio" value="f" class="ace" />
+                                                    <span class="lbl"> Женский</span>
+                                                </label>
+                                                &emsp;&emsp;
+                                                <label class="inline">
+                                                    <input id="chGender_m" name="chGender" type="radio" value="m" class="ace" />
+                                                    <span class="lbl"> Мужской</span>
+                                                </label>
+                                            </div>
+                                            <!-- Сюда будет вставлена иконка валидатора -->
+                                        </div>
+                                    </div><!-- Пол -->
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalChildrenEdit -->
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Ввод адреса с использованием kladr-api.ru (jquery.kladr) -->
+    <div id="modalKladr" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formKladr">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Введите адрес, заполнив соответствующие поля</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-12">
+
+
+
+                                    <!-- Регион -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrRegion">Регион</label>
+                                        <div class="col-sm-9">
+                                            <input class="width-100" type="text" id="kladrRegion" />
+                                        </div>
+                                    </div>
+                                    <!-- Район -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrDistrict">Район</label>
+                                        <div class="col-sm-9">
+                                            <input class="width-100" type="text" id="kladrDistrict" />
+                                        </div>
+                                    </div>
+                                    <!-- Город -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrCity">Город</label>
+                                        <div class="col-sm-9">
+                                            <span class="block input-icon input-icon-right">
+                                                <input class="width-100" type="text" id="kladrCity" name="kladrCity"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <!-- Улица -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrStreet">Улица</label>
+                                        <div class="col-sm-9">
+                                            <span class="block input-icon input-icon-right">
+                                                <input class="width-100" type="text" id="kladrStreet" name="kladrStreet" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <!-- Строение -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrBuilding">Дом</label>
+                                        <div class="col-sm-3">
+                                            <input class="width-100 center" type="text" maxlength="4" id="kladrBuilding" name="kladrBuilding" />
+                                        </div>
+                                    </div>
+                                    <!-- Квартира -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrKvartira">Квартира</label>
+                                        <div class="col-sm-3">
+                                            <input class="width-100 center" type="text" maxlength="3" id="kladrKvartira" />
+                                        </div>
+                                    </div>
+                                    <!-- Встраиваем карту yandex -->
+                                    <div class="form-group">
+                                        <div class="col-sm-9 col-sm-offset-2">
+                                            <div class="map" id="kladrMap"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Итоговый адрес -->
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="kladrAddress">Адрес</label>
+                                        <div class="col-sm-9">
+                                            <textarea id="kladrAddress" class="form-control" readonly rows="3"></textarea>
+                                        </div>
+                                    </div>
+
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalKladr -->
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Редактирование паспорта -->
+    <div id="modalPasportEdit" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formPasportEdit">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Паспорт</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+
+
+
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-5">
+                                    <div class="form-group">
+                                        <label class="col-sm-5 control-label no-padding-right" for="pasportSer">Серия</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-large" type="text" maxlength=4 id="pasportSer" name="pasportSer" />
+                                        </div>
+                                    </div><!-- Серия -->
+                                </div>
+                                <div class="col-xs-12 col-sm-7">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="pasportNum">Номер</label>
+                                        <div class="col-sm-8">
+                                            <input class="input-large" type="text" maxlength=6 id="pasportNum" name="pasportNum" />
+                                        </div>
+                                    </div><!-- Номер -->
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-offset-1 col-sm-10 col-xs-12">
+                                    <div class="form-group">
+                                        <label class="col-sm-5 control-label no-padding-right" for="pasportDat">Дата выдачи: </label>
+                                        <div class="col-sm-6">
+                                            <div class="width-100">
+                                                <div class="input-group">
+                                                    <input class="width-100 date" type="text" id="pasportDat" name="pasportDat" placeholder="гггг-мм-дд" />
+                                                    <span class="input-group-addon">
+                                                        <i class="ace-icon fa fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- Дата выдачи -->
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-12">
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label no-padding-right" for="pasportOrg">Кем выдан</label>
+                                        <div class="col-sm-10">
+                                            <input class="width-100" type="text" id="pasportOrg" name="pasportOrg" />
+                                        </div>
+                                    </div><!-- Кем выдан -->
+
+                                </div>
+                            </div><!-- Кем выдан -->
+
+
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-10 col-sm-offset-1">
+                                    <div class="has-error" id="errMessages">
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalPasportEdit -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div></body></html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+	  th:with="minified=${''}" ><!-- "minified=${'.min'}" -->
+<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<meta charset="utf-8" />
+		<title th:text="${aceadmin.page.title}">Заголовок</title>
+
+		<meta name="description" content="User login page" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+		<!-- bootstrap & fontawesome -->
+		<link rel="stylesheet" href="../../../resources/css/bootstrap.css" th:href="@{/resources/css/bootstrap{min}.css(min=${minified})}" />
+		<link rel="stylesheet" href="../../../resources/components/font-awesome/css/font-awesome.css" th:href="@{/resources/components/font-awesome/css/font-awesome{min}.css(min=${minified})}" />
+
+		<!-- text fonts -->
+		<link rel="stylesheet" href="../../../resources/css/ace-fonts.css" th:href="@{/resources/css/ace-fonts{min}.css(min=${minified})}" />
+
+		<!-- ace styles -->
+		<link rel="stylesheet" href="../../../resources/css/ace.css" th:href="@{/resources/css/ace{min}.css(min=${minified})}" />
+
+		<!--[if lte IE 9]>
+			<link rel="stylesheet" href="../../../resources/css/ace-part2.css" th:href="@{/resources/css/ace-part2{min}.css(min=${minified})}" />
+		<![endif]-->
+		<link rel="stylesheet" href="../../../resources/css/ace-rtl.css" th:href="@{/resources/css/ace-rtl{min}.css(min=${minified})}"/>
+
+		<!--[if lte IE 9]>
+		  <link rel="stylesheet" href="../../../resources/css/ace-ie.css" th:href="@{/resources/css/ace-ie{min}.css(min=${minified})}" />
+		<![endif]-->
+
+		<!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+
+		<!--[if lte IE 8]>
+		<script src="../../../resources/components/html5shiv/dist/html5shiv.min.js" th:src="@{/resources/html5shiv/dist/html5shiv.min.js}"></script>
+		<script src="../../../resources/components/respond/dest/respond.min.js" th:src="@{/resources/respond/dest/respond.min.js}"></script>
+		<![endif]-->
+	</head>
+
+	<body class="login-layout">
+		<div class="main-container">
+			<div class="main-content">
+				<div class="row">
+					<div class="col-sm-10 col-sm-offset-1">
+						<div class="login-container">
+							<div class="center">
+								<h1>
+									<i th:class="${aceadmin.site.brand_icon} + ' green'"></i>
+									<span class="white" id="id-text2" th:text="${aceadmin.site.brand_text}" /></span>
+								</h1>
+								<h4 class="blue" id="id-company-text">&copy; <th:block th:text="#{organization.name}" /></h4>
+							</div>
+
+							<div class="space-6"></div>
+
+							<div class="position-relative">
+								<div id="login-box" class="login-box visible widget-box no-border">
+									<div class="widget-body">
+										<div class="widget-main">
+											<h4 class="header blue lighter bigger">
+												<i class="ace-icon fa fa-coffee green"></i>
+												<th:block th:text="#{login.enterinformation}" />
+											</h4>
+
+											<div class="space-6"></div>
+
+                                            <!-- Если неверно ввели пару логин/пароль -->
+                                            <div class="alert alert-danger" th:if="${param.error}">
+                                                <button type="button" class="close" data-dismiss="alert">
+                                                    <i class="ace-icon fa fa-times"></i>
+                                                </button>
+                                                <strong>
+                                                    <i class="ace-icon fa fa-times bigger-140"></i>
+                                                    <th:block th:text="#{login.incorrect}">Неверный логин или пароль!</th:block>
+                                                </strong>
+                                            </div>
+
+											<form method="POST" action="#" th:action="@{/login/check}" accept-charset="UTF-8">
+												<fieldset>
+													<label class="block clearfix">
+														<span class="block input-icon input-icon-right">
+															<input name="username" id="username" type="text" class="form-control" th:placeholder="#{login.username}" />
+															<i class="ace-icon fa fa-user"></i>
+														</span>
+													</label>
+
+													<label class="block clearfix">
+														<span class="block input-icon input-icon-right">
+															<input name="password" id="password" type="password" class="form-control" th:placeholder="#{login.password}" />
+															<i class="ace-icon fa fa-lock"></i>
+														</span>
+													</label>
+
+													<div class="space"></div>
+
+													<div class="clearfix">
+														<label class="inline">
+															<input type="checkbox" class="ace" id="remember_me" name="_spring_security_remember_me"/>
+															<span class="lbl" th:text="' ' + #{login.remember_me}"> Запомнить меня</span>
+														</label>
+
+														<button type="submit" class="width-35 pull-right btn btn-sm btn-primary">
+															<i class="ace-icon fa fa-key"></i>
+															<span class="bigger-110" th:text="#{login.login}">Войти</span>
+														</button>
+													</div>
+
+													<div class="space-4"></div>
+												</fieldset>
+											</form>
+
+										</div><!-- /.widget-main -->
+
+									</div><!-- /.widget-body -->
+								</div><!-- /.login-box -->
+							</div><!-- /.position-relative -->
+						</div>
+					</div><!-- /.col -->
+				</div><!-- /.row -->
+			</div><!-- /.main-content -->
+		</div><!-- /.main-container -->
+
+		<!-- basic scripts -->
+
+		<!--[if !IE]> -->
+		<script src="../../../resources/components/jquery/dist/jquery.js" th:src="@{/resources/components/jquery/dist/jquery{min}.js(min=${minified})}"></script>
+
+		<!-- <![endif]-->
+
+		<!--[if IE]>
+        <script src="../../../resources/components/jquery.1x/dist/jquery.js" th:src="@{/resources/components/jquery.1x/dist/jquery{min}.js(min=${minified})}"></script>
+        <![endif]-->
+
+		<script type="text/javascript" th:inline="javascript">
+			/*<![CDATA[*/
+			var scriptUrl = /*[[@{/resources/components/_mod/jquery.mobile.custom/jquery.mobile.custom{min}.js(min=${minified})}]]*/ '../../../resources/components/_mod/jquery.mobile.custom/jquery.mobile.custom.js';
+			if('ontouchstart' in document.documentElement) document.write("<script src='" + scriptUrl + "'><\/script>");
+			/*]]>*/
+		</script>
+
+		<script src="../../../resources/components/bootstrap/dist/js/bootstrap.js" th:src="@{/resources/components/bootstrap/dist/js/bootstrap{min}.js(min=${minified})}"></script>
+
+		<!-- page specific plugin scripts -->
+		<script src="../../../resources/js/src/ace.js" th:src="@{/resources/js/src/ace{min}.js(min=${minified})}"></script>
+
+
+		<!-- inline scripts related to this page -->
+        <script type="text/javascript" th:inline="javascript">
+            /*<![CDATA[*/
+            jQuery(function ($) {
+
+                // login-light
+                $('body').attr('class', 'login-layout light-login');
+                $('#id-text2').attr('class', 'grey');
+                $('#id-company-text').attr('class', 'blue');
+
+			});
+
+            /*]]>*/
+		</script>
+
+
+
+	</body>
+</html>

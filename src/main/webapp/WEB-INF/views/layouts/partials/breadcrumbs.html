@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body><div th:fragment="content" th:remove="tag">
+
+
+
+    <!-- #section:basics/content.breadcrumbs -->
+    <div class="breadcrumbs ace-save-state" id="breadcrumbs">
+        <ul class="breadcrumb">
+            <li><i class="ace-icon fa fa-home home-icon"></i> <a href="#">Home</a></li>
+            <li th:each="breadcrumb,iterStat : ${aceadmin.breadcrumbs}" th:classappend="${iterStat.last} ? active">
+                <a href="#" th:href="@{/{link}(link=${breadcrumb.link})}" th:if="${!iterStat.last}" th:text="${breadcrumb.title}"></a>
+                <span th:if="${iterStat.last}" th:text="${breadcrumb.title}" th:remove="tag"></span>
+            </li>
+        </ul><!-- /.breadcrumb -->
+
+        <div th:replace="layouts/partials/searchbox :: content"></div>
+    </div>
+    <!-- /section:basics/content.breadcrumbs -->
+
+
+
+</div></body></html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<body><div th:fragment="content" th:remove="tag">
+    <script type="text/javascript" th:inline="javascript">
+        /*<![CDATA[*/
+        jQuery(function ($) {
+            /* ****************************************************************************************************** */
+
+            /* Основная логика */
+            {
+                var $modalPersonAdd = $('#modalPersonAdd'),
+                    $formPersonAdd = $('#formPersonAdd'),
+                    $modalPersonDatUvol = $('#modalPersonDatUvol'),
+                    $formPersonDatUvol = $('#formPersonDatUvol');
+
+                var PERSONS_URL = /*[[@{/api/persons}]]*/ 'http://localhost:8080/oio/api/persons';
+
+                // Клик по кнопке удаления сотрудника
+                $('.person-delete').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    var id = $(this).data('person-id');
+                    // Спрашиваем у пользователя, точно ли нужно удалять
+                    swal({
+                        title: "Внимание!",
+                        text: "Вы действительно хотите удалить сотрудника?",
+                        type: "warning",
+                        timer: 100000,
+                        background:"#fcf8e3",
+                        allowOutsideClick: false,
+                        buttonsStyling: false,
+                        confirmButtonText: "Удалить",
+                        confirmButtonClass: "btn btn-lg btn-warning",
+                        showCancelButton: true,
+                        focusCancel: true,
+                        cancelButtonText: "Отменить",
+                        cancelButtonClass: "btn btn-lg btn-cancel"
+                    }).then(function()                {
+                        // Открываем окно ввода даты увольнения, передаем в него id сотрудника
+                        $modalPersonDatUvol.data('personId',id).modal('show');
+                    }).catch(swal.noop);
+                })
+
+                // Добавление сотрудника ( POST на адрес /api/persons)
+                var personAdd = function () {
+                    // Заполняем JSON person
+                    var person = {
+                        surname: $("#personSurname", $modalPersonAdd).val(),
+                        name: $("#personName", $modalPersonAdd).val(),
+                        patronymic: $("#personPatronymic", $modalPersonAdd).val(),
+                        dr: $("#personDr", $modalPersonAdd).val(),
+                        gender: $(":radio:checked", $modalPersonAdd).val()
+                    };
+
+                    var deferred = null;
+
+                    // Необходимо для того, чтобы Spring Sequrity разрешал PUT Ajax запросы , если включена защита CSRF
+                    var csrfToken = $('meta[name="_csrf"]').attr('content');
+                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+                    deferred = $.ajax({
+                        url: PERSONS_URL,
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json',
+                        data: JSON.stringify(person),
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    })
+
+                    return deferred.promise();
+                }
+
+                // Удаление сотрудника ( DELETE на адрес /api/persons/{id} )
+                var personDel = function (personId, datUvol) {
+                    var deferred = null;
+
+                    // Необходимо для того, чтобы Spring Sequrity разрешал Ajax запросы, если включена защита CSRF
+                    var csrfToken = $('meta[name="_csrf"]').attr('content');
+                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+                    deferred = $.ajax({
+                        url: PERSONS_URL + '/' + personId + '?date=' + datUvol,
+                        type: 'DELETE',
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    })
+
+                    return deferred.promise();
+                }
+            }
+
+
+            /* Настройка элементов страницы */
+            {
+                // Настраиваем datepicker-ы
+                $('.date').datetimepicker({
+                    locale: 'ru',
+                    format: 'YYYY-MM-DD',
+                    showClear: true,
+                    showTodayButton: true
+                });
+
+
+            }
+
+
+            /* Валидация форм */
+            {
+                // Валидация формы добавления сотрудника
+                {
+                    // IMPORTANT: on('init.field.fv') must be declared before calling .formValidation(...)
+                    $formPersonAdd.on('init.field.fv', function(e, data) {
+                        // $(e.target)  --> The field element
+                        // data.fv      --> The FormValidation instance
+                        // data.field   --> The field name
+                        // data.element --> The field element
+
+                        if (data.field === 'personGender') {
+                            var $parent = data.element.parents('.form-group'),
+                                $icon   = data.element.data('fv.icon'),
+                                $el = $parent.find('.iconPlace');
+                            $icon.insertAfter($el);
+                        }
+
+                    })
+
+                    $formPersonAdd.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            personSurname: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+[-|\s]?[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы и один дефис или пробел в качестве разделителя)'
+                                    }
+
+                                }
+                            },
+                            personName: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы)'
+                                    }
+
+                                }
+                            },
+                            personPatronymic: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 30 символами',
+                                        max: 30
+                                    },
+                                    regexp: {
+                                        regexp: /^[а-яё]+$/i,
+                                        message: 'Введены недопустимые символы <br>(разрешены только русские буквы)'
+                                    }
+
+                                }
+                            },
+                            personDr: { validators: {notEmpty: {} }},
+                            'personGender': {
+                                validators: {
+                                    notEmpty: {
+                                        message: 'Пол необходимо указать'
+                                    }
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            // Добавляем сотрудника
+                            personAdd()
+                                .always(function(result) {
+                                    $.showUserMessage(
+                                        result,
+                                        'Сотрудник успешно добавлен!',
+                                        'Перейдите к заполнению остальных сведений',
+                                        'Ошибка добавления сотрудника!',
+                                        function(){
+                                            location.reload();
+                                        });
+                                });
+
+                            $modalPersonAdd.modal('hide');
+                            return false;
+                        }
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $modalPersonAdd.on('dp.change', function(e) {
+                        $formPersonAdd.formValidation('revalidateField', 'personDr');
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalPersonAdd.on('hide.bs.modal', function (e) {
+                        $formPersonAdd.data('formValidation').resetForm(true);
+                    });
+
+                }
+
+                // Валидация формы ввода даты увольнения
+                {
+                    $formPersonDatUvol.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            personDatUvol: { validators: {notEmpty: {} } }
+                        },
+                        onSuccess: function(e) {
+                            // Удаляем сотрудника
+                            var id = $modalPersonDatUvol.data('personId');
+                            var datUvol = $('#personDatUvol', $modalPersonDatUvol).val();
+
+                            personDel(id, datUvol)
+                                .always(function(result) {
+                                    $.showUserMessage(
+                                        result,
+                                        'Сотрудник успешно уволен!',
+                                        'Все сведения о сотруднике успешно перенесены в архив',
+                                        'Ошибка увольнения сотрудника!',
+                                        function(){
+                                            location.reload();
+                                        });
+                                });
+
+                            $modalPersonDatUvol.modal('hide');
+                        }
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $modalPersonDatUvol.on('dp.change', function(e) {
+                        $formPersonDatUvol.formValidation('revalidateField', 'personDatUvol');
+                    });
+
+                    // Сброс информации о валидации и сброс формы при скрытии окна
+                    $modalPersonDatUvol.on('hide.bs.modal', function (e) {
+                        $formPersonDatUvol.data('formValidation').resetForm(true);
+                    })
+                }
+
+
+
+            }
+
+
+
+
+
+            /* ****************************************************************************************************** */
+        });
+        /*]]>*/
+    </script>
+</div></body></html>

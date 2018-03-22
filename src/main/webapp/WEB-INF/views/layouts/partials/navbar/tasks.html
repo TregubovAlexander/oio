@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+
+
+<div th:fragment="content" th:remove="tag">
+    <li class="grey dropdown-modal">
+        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+            <i class="ace-icon fa fa-tasks"></i>
+            <span class="badge badge-grey" th:text="${#lists.size(aceadmin.tasks)}"></span>
+        </a>
+
+        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
+            <li class="dropdown-header">
+                <i class="ace-icon fa fa-check"></i> <th:block th:text="${#lists.size(aceadmin.tasks)}" /> Tasks to complete
+            </li>
+
+            <li class="dropdown-content">
+                <ul class="dropdown-menu dropdown-navbar">
+                    <!-- navbar_tasks item -->
+                    <li th:each="task,iterStat : ${aceadmin.tasks}" th:if="${iterStat.count <= aceadmin.appSettings.navbar_tasks_limit}">
+                        <a href="#">
+                            <div class="clearfix">
+                                <span class="pull-left" th:text="${task.title}"></span>
+                                <span class="pull-right" th:text="${task.percentage} + '%'">30%</span>
+                            </div>
+                            <div class="progress progress-mini" th:classappend="${task.progress_class}">
+                                <div style="width:30%" th:style="'width:' + ${task.percentage} + '%'"  class="progress-bar" th:classappend="${task.progress_bar_class}"></div>
+                            </div>
+                        </a>
+                    </li>
+                    <!-- /navbar_tasks item -->
+                </ul>
+            </li>
+
+            <li class="dropdown-footer">
+                <a href="#">
+                    See tasks with details
+                    <i class="ace-icon fa fa-arrow-right"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
+</div>
+
+
+
+
+</body>
+</html>

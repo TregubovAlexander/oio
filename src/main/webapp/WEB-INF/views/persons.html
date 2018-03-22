@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:data="http://www.w3.org/1999/xhtml"><head>
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="../../resources/css/bootstrap.css" />
+    <link rel="stylesheet" href="../../resources/components/font-awesome/css/font-awesome.css" />
+    <!-- text fonts -->
+    <link rel="stylesheet" href="../../resources/css/ace-fonts.css" />
+    <!-- ace styles -->
+    <link rel="stylesheet" href="../../resources/css/ace.css" class="ace-main-stylesheet" id="main-ace-style" />
+    <link rel="stylesheet" href="../../resources/css/ace-skins.css" />
+    <link rel="stylesheet" href="../../resources/css/ace-rtl.css" />
+</head><body><div th:fragment="content" th:remove="tag">
+
+
+    <!-- Сотрудники -->
+    <div class="space-4"></div>
+
+    <table id="persons-table" class="table table-striped table-bordered table-hover">
+        <thead>
+        <tr class="no-padding">
+            <th class="width-20px">№</th>
+            <th class="width-30">ФИО</th>
+            <th class="width-40 hidden-sm hidden-xs">Должность</th>
+            <th class="hidden-sm hidden-xs"><i class="ace-icon fa fa-phone fa-flip-horizontal bigger-110"></i> Телефон</th>
+            <th class="width-70px"></th>
+        </tr>
+        </thead>
+        <tr th:each="person : ${persons}">
+            <td th:text="${personStat.count}"></td>
+            <td><a href="#" th:href="@{/persons/{id}(id=${person.id})}" th:text="${person.fullName}">Иванов Иван Иванович</a></td>
+            <td class="hidden-sm hidden-xs">
+                <span th:each="post : ${person.postList}" th:if="${post.active}" th:text="${post.dol.name} + ' (' + ${post.stavka} + ' ст.) '">Инженер</span>
+            </td>
+            <td th:text="${person.mobilePhone}" class="hidden-sm hidden-xs"></td>
+            <td>
+                <div class="hidden-sm hidden-xs action-buttons">
+                    <a class="green" href="#" th:href="@{/persons/{id}(id=${person.id},action=edit)}" th:title="#{control.edit}">
+                        <i class="ace-icon fa fa-pencil bigger-130"></i>
+                    </a>
+                    <a class="red person-delete" href="#" data:person-id="${person.id}" th:title="#{control.delete}">
+                        <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                    </a>
+                </div>
+                <div class="hidden-md hidden-lg">
+                    <div class="inline pos-rel">
+                        <button class="btn btn-minier btn-yellow dropdown-toggle" data-toggle="dropdown" data-position="auto">
+                            <i class="ace-icon fa fa-caret-down icon-only bigger-120"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-menu-right dropdown-caret dropdown-close">
+                            <li>
+                                <a href="#" class="tooltip-success" data-rel="tooltip" th:href="@{/persons/{id}(id=${person.id},action=edit)}" th:title="#{control.edit}">
+                                    <span class="green"><i class="ace-icon fa fa-pencil-square-o bigger-120"></i></span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="tooltip-error person-delete" data-rel="tooltip" data:person-id="${person.id}" th:title="#{control.delete}">
+                                    <span class="red"><i class="ace-icon fa fa-trash-o bigger-120"></i></span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </td>
+
+        </tr>
+    </table>
+
+    <div class="space-2"></div>
+
+    <div class="clearfix">
+        <div class="pull-left">
+            <i class="ace-icon fa fa-hand-o-right green bigger-125"></i>
+            <a href="#modalPersonAdd" data-toggle="modal" class="bigger-110">Добавить сотрудника</a>
+        </div>
+    </div>
+    <!-- /Сотрудники -->
+
+
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Добавление сотрудника -->
+    <div id="modalPersonAdd" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formPersonAdd">
+                <input type="hidden" id="personId" value="0">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Добавление сотрудника</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 col-lg-12">
+
+
+
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="personSurname">Фамилия</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-xlarge" type="text" id="personSurname" name="personSurname" />
+                                        </div>
+                                    </div><!-- Фамилия -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="personName">Имя</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-xlarge" type="text" id="personName" name="personName" />
+                                        </div>
+                                    </div><!-- Имя -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="personPatronymic">Отчество</label>
+                                        <div class="col-sm-7">
+                                            <input class="input-xlarge" type="text" id="personPatronymic" name="personPatronymic" />
+                                        </div>
+                                    </div><!-- Отчество -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="personDr">Дата рождения: </label>
+                                        <div class="col-sm-7">
+                                            <div class="input-medium">
+                                                <div class="input-group">
+                                                    <input class="input-medium date" type="text" id="personDr" name="personDr" placeholder="гггг-мм-дд" />
+                                                    <span class="input-group-addon">
+                                                        <i class="ace-icon fa fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- Дата рождения -->
+                                    <div class="space-2"></div>
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right">Пол</label>
+                                        <div class="col-sm-7">
+                                            <div class="col-sm-11 iconPlace">
+                                                <label class="inline">
+                                                    <input id="personGender_f" name="personGender" type="radio" value="f" class="ace" />
+                                                    <span class="lbl"> Женский</span>
+                                                </label>
+                                                &emsp;&emsp;
+                                                <label class="inline">
+                                                    <input id="personGender_m" name="personGender" type="radio" value="m" class="ace" />
+                                                    <span class="lbl"> Мужской</span>
+                                                </label>
+                                            </div>
+                                            <!-- Сюда будет вставлена иконка валидатора -->
+                                        </div>
+                                    </div><!-- Пол -->
+
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Добавить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalAddExtraValueItem -->
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Ввод даты увольнения -->
+    <div id="modalPersonDatUvol" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formPersonDatUvol">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Увольнение сотрудника</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-12">
+
+                                    <!-- Дата увольнения -->
+                                    <div class="form-group">
+                                        <label class="col-sm-5 control-label no-padding-right" for="personDatUvol">Введите дату увольнения: </label>
+                                        <div class="col-sm-7">
+                                            <div class="input-medium">
+                                                <div class="input-group">
+                                                    <input class="input-medium date" type="text" id="personDatUvol" name="personDatUvol" placeholder="гггг-мм-дд" />
+                                                    <span class="input-group-addon">
+                                                        <i class="ace-icon fa fa-calendar"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- /Дата увольнения -->
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalPersonDatUvol -->
+
+
+
+
+</div></body></html>
