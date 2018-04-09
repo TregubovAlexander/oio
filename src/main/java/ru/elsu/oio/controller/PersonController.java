@@ -71,7 +71,7 @@ public class PersonController {
         // Получаем сотрудника по id
         Person person = personService.getById(id);
         if (person == null) {
-            throw new ResourceNotFoundException();
+            throw new ResourceNotFoundException("Сотрудник с ID " + id + " не найден");
         }
 
         aceAdmin.getPage().setTitle("Сведения о сотруднике");

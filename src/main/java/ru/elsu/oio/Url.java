@@ -17,14 +17,15 @@ public final class Url {
     // Сотрудники
     public static final String PERSONS                  = "/persons";
     public static final String PERSON                   = "/persons/{id}";
-    public static final String PERSONS_API              = "/api/persons";
-    public static final String PERSON_API               = "/api/persons/{id}";
 
-    // Фото сотрудника
-    public static final String PERSON_PHOTO_API         = "/api/getphoto/{id}";
+    // API
+    public static final String API                      = "/api";
 
-    // Табель
-    public static final String TABEL_API                = "/api/tabel/{year}/{month}";
+    // Фото сотрудника (API)
+    public static final String PERSON_PHOTO             = "/getphoto/{id}";
+
+    // Табель (API)
+    public static final String TABEL                    = "/tabel/{year}/{month}";
 
 
 

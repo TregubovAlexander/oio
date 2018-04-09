@@ -351,16 +351,16 @@
                         person.patronymic = $('#personPatronymic', $personEditForm).val();
                         person.dr = $('#personDr', $personEditForm).val();
                         person.gender = $personEditForm.find('input[name="personGender"]:checked').val();
-                        person.mobilePhone = $('#personMobilePhone', $personEditForm).val();
-                        person.homePhone = $('#personHomePhone', $personEditForm).val();
-                        person.workPhone = $('#personWorkPhone', $personEditForm).val();
+                        person.mobilePhone = $('#personMobilePhone', $personEditForm).val().replace(/\D+/g,"").slice(-10);
+                        person.homePhone = $('#personHomePhone', $personEditForm).val().replace(/\D+/g,"");
+                        person.workPhone = $('#personWorkPhone', $personEditForm).val().replace(/\D+/g,"");
                         person.email = $('#personEmail', $personEditForm).val();
                         person.datPrin = $('#personDatPrin', $personEditForm).val();
                         person.tabNo = $('#personTabNo', $personEditForm).val();
                         person.semPol = $('#personSemPol', $personEditForm).prop('checked');
                         person.dopsved = $('#personDopsved', $personEditForm).html();
                     }
-                    //console.log(JSON.stringify(person, null, '\t')); // TODO: убрать
+//console.log(JSON.stringify(person, null, '\t')); // TODO: убрать
 
                     var deferred = null;
 

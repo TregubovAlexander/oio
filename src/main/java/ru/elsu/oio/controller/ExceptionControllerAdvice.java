@@ -15,10 +15,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 
 
-@ControllerAdvice
+//@ControllerAdvice
 public class ExceptionControllerAdvice {
 
-    final static Logger logger = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
+/*    final static Logger logger = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
 
     public String getFullURL(HttpServletRequest request) {
         StringBuffer requestURL = request.getRequestURL();
@@ -69,5 +69,6 @@ public class ExceptionControllerAdvice {
         mav.setViewName("layouts/default");
         return mav;
     }
+*/
 
 }

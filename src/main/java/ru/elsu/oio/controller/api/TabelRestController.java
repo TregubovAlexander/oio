@@ -1,4 +1,4 @@
-package ru.elsu.oio.controller;
+package ru.elsu.oio.controller.api;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.AreaReference;
@@ -9,9 +9,10 @@ import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.elsu.oio.Url;
-import ru.elsu.oio.dto.ApiError;
+import ru.elsu.oio.dto.ErrorDetail;
 import ru.elsu.oio.entity.*;
 import ru.elsu.oio.services.PersonService;
 import ru.elsu.oio.services.SprService;
@@ -28,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
+@RequestMapping(Url.API)
 public class TabelRestController {
 
     @Autowired
@@ -56,8 +58,8 @@ public class TabelRestController {
 
 
 
-    // Отдаем файл по HTTP
-    //@GetMapping(Url.TABEL_API)
+    //region === Отдаем файл по HTTP ============================================================================================
+    //@GetMapping(Url.TABEL)
 //    public HttpEntity<byte[]> sendTabelFile(@PathVariable int year, @PathVariable int month) {
 
     public HttpEntity<byte[]> sendTabelFile(int year, int month) {
@@ -79,6 +81,7 @@ public class TabelRestController {
 
         return new HttpEntity<byte[]>(documentBody, header);
     }
+    //endregion
 
 
     //region === Получение XLSX файла с табелем за указанный год/месяц ==========================================================
@@ -88,7 +91,7 @@ public class TabelRestController {
      * @param year   - год за который делается табель
      * @param month  - месяц за который делается табель
      */
-    @GetMapping(Url.TABEL_API)
+    @GetMapping(Url.TABEL)
     public ResponseEntity<?> getTabel(@PathVariable int year, @PathVariable int month) {
 
         try {
@@ -135,16 +138,16 @@ public class TabelRestController {
 
         } catch (FileNotFoundException e) { //TODO: подумать над исключениями - лучше генерировать самостоятельно разные исключения и передавать наверх в этото метод (из createTabel)
             String err = e.getMessage();
-            ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Ошибка FileNotFoundException", err);
-            return new ResponseEntity<ApiError>(apiError, new HttpHeaders(), apiError.getStatus());
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка FileNotFoundException", err);
+            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         } catch (IOException e) {
             String err = e.getMessage();
-            ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Ошибка IOException", err);
-            return new ResponseEntity<ApiError>(apiError, new HttpHeaders(), apiError.getStatus());
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка IOException", err);
+            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         } catch (Exception e) { // Все остальные исключения (например, NullPointerException когда не найдена именованная ячейка и пр.)
             String err = e.getMessage();
-            ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Ошибка Exception", err);
-            return new ResponseEntity<ApiError>(apiError, new HttpHeaders(), apiError.getStatus());
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка Exception", err);
+            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }
 
 

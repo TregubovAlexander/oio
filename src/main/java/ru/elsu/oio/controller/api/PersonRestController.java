@@ -1,4 +1,4 @@
-package ru.elsu.oio.controller;
+package ru.elsu.oio.controller.api;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,20 +6,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.elsu.oio.Url;
 import ru.elsu.oio.controller.exeption.ImageUploadException;
-import ru.elsu.oio.dto.ApiError;
+import ru.elsu.oio.controller.exeption.ResourceNotFoundException;
+import ru.elsu.oio.dto.ErrorDetail;
 import ru.elsu.oio.controller.exeption.IncorrectUserDataException;
 import ru.elsu.oio.dao.ChildrenDao;
 import ru.elsu.oio.dao.SprDolDao;
 import ru.elsu.oio.dto.*;
 import ru.elsu.oio.entity.*;
 import ru.elsu.oio.services.PersonService;
+import ru.elsu.oio.services.SprService;
 import ru.elsu.oio.utils.Util;
 
+import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -32,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
+@RequestMapping(Url.API)
 public class PersonRestController {
 
     @Autowired
@@ -41,14 +46,14 @@ public class PersonRestController {
     private ChildrenDao childrenDao;
 
     @Autowired
-    private SprDolDao sprDolDao;
+    private SprService sprService;
 
     // Папка с файлами (задана в параметрах)
     @Value("${files.path}")
     private String filesPath;
 
     //region === Список всех сотрудников отдела =================================================================================
-    @GetMapping(Url.PERSONS_API)
+    @GetMapping(Url.PERSONS)
     public List<PersonDto> getAllPersons() {
         List<Person> personList = personService.getAllInitialized();
         List<PersonDto> personDtoList = new ArrayList<>();
@@ -61,102 +66,44 @@ public class PersonRestController {
 
 
     //region === Инормация о конкретном сотруднике с идентификатором id =========================================================
-    @GetMapping(Url.PERSON_API)
+    @GetMapping(Url.PERSON)
     public ResponseEntity<Object> getPersonById(@PathVariable Long id) {
 
         // Получаем сотрудника по id
         Person person = personService.getById(id);
         if (person == null) {
-
-            ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, "Сотрудник не найден", "Сотрудник с ID= " + id + " не найден");
-            return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+            throw new ResourceNotFoundException("Сотрудник с ID " + id + " не найден");
         }
+
         return new ResponseEntity<Object>(new PersonDto(person), HttpStatus.OK);
 
     }
     //endregion
 
 
-    //region === Проверка и коррекция присланного объекта personDto (ФИО, ДР, пол) ==============================================
-
+    //region === Коррекция присланного объекта personDto (ФИО, ДР, пол) =========================================================
     /**
-     * Проверяем присланные данные на корректность, учитывая обязательные поля.
-     * Исправляем формат данных.
+     * Исправляем формат данных
      *
      * @param personDto данные присылаются в формате JSON
-     * @param required  true - учитываем обязательные для заполения поля, требуем их наличие
-     *                  false - не учитываем обязательные поля
-     * @throws IncorrectUserDataException
      */
-    private void dtoCheckAndCorrect(PersonDto personDto, boolean required) throws IncorrectUserDataException {
-        String s = null;
-        //region ФИО
-        s = personDto.getSurname();
-        if (s != null) {
-            if (Util.surnameIsValid(s)) {
-                personDto.setSurname(Util.surnameCase(s));
-            } else {
-                throw new IncorrectUserDataException("Фамилия указана неверно: разрешены только русские буквы и один дефис или пробел в качестве разделителя, длина ограничена 30 символами");
-            }
-        } else if (required) throw new IncorrectUserDataException("Фамилия обязательна к заполнению");
-        s = personDto.getName();
-        if (s != null) {
-            if (Util.nameIsValid(s)) {
-                personDto.setName(Util.nameCase(s));
-            } else {
-                throw new IncorrectUserDataException("Имя указано неверно: разрешены только русские буквы, длина ограничена 30 символами");
-            }
-        } else if (required) throw new IncorrectUserDataException("Имя обязательно к заполнению");
-        s = personDto.getPatronymic();
-        if (s != null) {
-            if (Util.nameIsValid(s)) {
-                personDto.setPatronymic(Util.nameCase(s));
-            } else {
-                throw new IncorrectUserDataException("Отчество указано неверно: разрешены только русские буквы, длина ограничена 30 символами");
-            }
-        } else if (required) throw new IncorrectUserDataException("Отчество обязательно к заполнению");
-        //endregion
-        //region ДР
-        s = personDto.getDr();
-        if (s != null) {
-            try {
-                Date d = Util.strToDate(s);
-                personDto.setDr(Util.dateToStr(d));
-            } catch (RuntimeException ex) {
-                throw new IncorrectUserDataException("Дата рождения указана некорректно");
-            }
-        } else if (required) throw new IncorrectUserDataException("Дата рождения обязательна к заполнению");
-        //endregion
-        //region Пол
-        s = personDto.getGender();
-        if (s != null) {
-            String c = Character.toString(s.trim().toLowerCase().charAt(0));
-            if (new String("fm").contains(c)){
-                personDto.setGender(c);
-            } else {
-                throw new IncorrectUserDataException("Пол указан неверно. Допустимые символы m и f");
-            }
-        } else if (required) throw new IncorrectUserDataException("Пол обязателен к заполнению");
-        //endregion
-    }
-
-    /**
-     * Проверяем присланные данные на корректность. Нет обязательных полей.
-     * Исправляем формат данных.
-     */
-    private void dtoCheckAndCorrect(PersonDto personDto) throws IncorrectUserDataException {
-        dtoCheckAndCorrect(personDto, false);
+    private void correctDto(PersonDto personDto) {
+        personDto.setSurname(Util.surnameCase(personDto.getSurname()));         // Ф
+        personDto.setName(Util.nameCase(personDto.getName()));                  // И
+        personDto.setPatronymic(Util.nameCase(personDto.getPatronymic()));      // О
+        personDto.setGender(personDto.getGender().toLowerCase());               // Пол
     }
     //endregion
 
 
     //region === Добавление сотрудника ==========================================================================================
-    @PostMapping(Url.PERSONS_API)
-    public ResponseEntity<?> createPerson(@RequestBody PersonDto personDto) {
-        ApiError apiError = null;
+    @PostMapping(Url.PERSONS)
+    public ResponseEntity<?> createPerson(@Valid @RequestBody PersonDto personDto) {
+        ErrorDetail errorDetail = null;
         Person person = null;
         try {
-            dtoCheckAndCorrect(personDto, true);  // Проверяем корректность переданных данных
+            // Корректируем переданные данные
+            correctDto(personDto);
 
             // Проверяем, что такого сотрудника еще нет в БД (два одинаковых сотрудника запрещены)
             if (personService.personExists(personDto)) {
@@ -164,34 +111,32 @@ public class PersonRestController {
             }
 
             person = personService.createPerson(personDto);
-        } catch (RuntimeException e){
-            String err = e.getMessage();
-            apiError = new ApiError(HttpStatus.BAD_REQUEST, "Сохранение не удалось", err);
-            return new ResponseEntity<ApiError>(apiError, new HttpHeaders(), apiError.getStatus());
+        } catch (RuntimeException e) {
+            errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }
 
-        //region Если все нормально - Возвращаем HttpStatus.CREATED и передаем URI вновь созданного ресурса через HTTP-заголовок Location
+        // Если все нормально - Возвращаем HttpStatus.CREATED и передаем URI вновь созданного ресурса через HTTP-заголовок Location
         HttpHeaders responseHeaders = new HttpHeaders();
         URI newPersonUri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(person.getId()).toUri();
         responseHeaders.setLocation(newPersonUri);
         return new ResponseEntity<>(null, responseHeaders, HttpStatus.CREATED);
-        //endregion
     }
     //endregion
 
 
     //region === Обновление (сохранение) сотрудника с идентификатором id ========================================================
-    @PutMapping(Url.PERSON_API)
-    public ResponseEntity<?> updatePerson(@PathVariable Long id, @RequestBody PersonDto personDto) {
-        ApiError apiError = null;
+    @PutMapping(Url.PERSON)
+    public ResponseEntity<?> updatePerson(@PathVariable Long id, @Valid @RequestBody PersonDto personDto) {
+        ErrorDetail errorDetail = null;
 
-        //region Получаем сотрудника с указанным ID
+        // Получаем сотрудника с указанным ID
         Person person = personService.getById(id);
         if (person == null) {
             // Возвращаем ошибку, если ID указан не верно
-            apiError = new ApiError(HttpStatus.NOT_FOUND, "Сохранение не удалось", "Сотрудник с ID=" + id + " не найден в базе данных");
-            return new ResponseEntity<ApiError>(apiError, new HttpHeaders(), apiError.getStatus());
-        }//endregion
+            errorDetail = new ErrorDetail(HttpStatus.NOT_FOUND, "Сохранение не удалось", "Сотрудник с ID=" + id + " не найден в базе данных");
+            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+        }
 
         // Обновляем
         try {
@@ -199,8 +144,8 @@ public class PersonRestController {
             personService.save(person);
         } catch (RuntimeException ex){
             String err = ex.getMessage();
-            apiError = new ApiError(HttpStatus.BAD_REQUEST, "Сохранение не удалось", err);
-            return new ResponseEntity<ApiError>(apiError, new HttpHeaders(), apiError.getStatus());
+            errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", err);
+            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
@@ -220,19 +165,16 @@ public class PersonRestController {
         //TODO: для должностей и детей сделать возможность частичного заполнения данных
         //TODO: Реализовать проверку адреса по КЛАДР. Некорректный адрес не добавлять! Пока сохраняется все, что передали
 
-        dtoCheckAndCorrect(dto); // Проверяем и обрабатываем поля ФИО, ДР, пол
-        s = dto.getSurname();
-        if (s != null) person.setSurname(s);
-        s = dto.getName();
-        if (s != null) person.setName(s);
-        s = dto.getPatronymic();
-        if (s != null) person.setPatronymic(s);
-        s = dto.getDr();
-        if (s != null) person.setDr(Util.strToDate(s));
-        s = dto.getGender();
-        if (s != null) person.setGender(s);
+        //region ФИО, ДР, пол
+        correctDto(dto);
+        person.setSurname(dto.getSurname());
+        person.setName(dto.getName());
+        person.setPatronymic(dto.getPatronymic());
+        person.setDr(Util.strToDate(dto.getDr()));
+        person.setGender(dto.getGender());
+        //endregion
 
-        //region Адрес
+        //region Адрес TODO: Valid
         Boolean newAddress = false;
         AddressDto addressDto = dto.getAddress();
         if (addressDto != null) {
@@ -340,7 +282,7 @@ public class PersonRestController {
                 person.setAddress(address);
             }
         }//endregion
-        //region Паспорт
+        //region Паспорт TODO: Valid
         Boolean newPasport = false;
         PasportDto pasportDto = dto.getPasport();
         if (pasportDto != null) {
@@ -402,53 +344,20 @@ public class PersonRestController {
                 person.setPasport(pasport);
             }
         }//endregion
-        //region Телефоны
+
+        //region Телефоны E-mail
         s = dto.getHomePhone();
-        if (s != null) {
-            s = s.replaceAll("[^0-9]", ""); // удалится все кроме цифр
-            if (s.length() <= 10) {
-                person.setHomePhone(Util.phoneNumberFormat(s));
-            } else {
-                throw new IncorrectUserDataException("Телефонный номер ограничен 10 цифрами");
-            }
-        }
+        if (s != null) person.setHomePhone(Util.phoneNumberFormat(s));
         s = dto.getWorkPhone();
-        if (s != null) {
-            s = s.replaceAll("[^0-9]", "");
-            if (s.length() <= 10) {
-                person.setWorkPhone(Util.phoneNumberFormat(s));
-            } else {
-                throw new IncorrectUserDataException("Телефонный номер ограничен 10 цифрами");
-            }
-        }
+        if (s != null) person.setWorkPhone(Util.phoneNumberFormat(s));
         s = dto.getMobilePhone();
-        if (s != null) {
-            s = s.replaceAll("[^0-9]", "");
-            if (s.length() >= 11) {
-                s = s.substring(1);
-            }
-            if (s.length() == 10 ) {
-                person.setMobilePhone(Util.mobilePhoneNumberFormat(s));
-            } else {
-                throw new IncorrectUserDataException("Номер мобильного телфона указан неверно");
-            }
-        }
-        //endregion
-        //region E-mail
+        if (s != null) person.setMobilePhone(Util.mobilePhoneNumberFormat(s));
+        // E-mail
         s = dto.getEmail();
-        if (s != null) {
-            s = s.trim();
-            if (s != "") {
-                if (Util.emailIsValid(s)) {
-                    person.setEmail(s);
-                } else {
-                    throw new IncorrectUserDataException("E-mail указан неверно");
-                }
-            } else {
-                person.setEmail(null);
-            }
-        }//endregion
-        //region Должности
+        if (s != null) person.setEmail(s.trim());
+        //endregion
+
+        //region Должности TODO: Valid
         List<PostDto> postDtoList = dto.getPosts();
         List<Post> postList = person.getPostList();
         Post post;
@@ -480,7 +389,7 @@ public class PersonRestController {
                 //region Заполняем должность новыми данными
                 if (post != null) {
                     //region Должность
-                    dol = sprDolDao.getById(postDto.getDolId());
+                    dol = sprService.getDolById(postDto.getDolId());
                     if (dol != null) {
                         post.setDol(dol);
                     } else {
@@ -547,20 +456,18 @@ public class PersonRestController {
             }
         }
         //endregion Должности
+
         //region Дата принятия
         s = dto.getDatPrin();
         if (s != null) {
             s = s.trim();
-            if (s != "") {
-                try {
-                    person.setDatPrin(Util.strToDate(s));
-                } catch (RuntimeException ex) {
-                    throw new IncorrectUserDataException("Дата принятия на работу указана некорректно");
-                }
+            if (!s.isEmpty()) {
+                person.setDatPrin(Util.strToDate(s));
             } else {
                 person.setDatPrin(null);
             }
         }//endregion
+
         //region Табельный номер
         s = dto.getTabNo();
         if (s != null) {
@@ -572,7 +479,8 @@ public class PersonRestController {
         if (b != null) {
             person.setSemPol(b);
         }//endregion
-        //region Дети
+
+        //region Дети TODO: Valid
         List<ChildrenDto> childrenDtoList = dto.getChildrens();
         List<Children> childrenList = person.getChildrenList();
         Children children;
@@ -739,11 +647,13 @@ public class PersonRestController {
             }
         }
         //endregion
+
         //region Дополнительные сведения
         s = dto.getDopsved();
         if (s != null) {
             person.setDopsved(s);
-        }//endregion
+        }
+        //endregion
     }
 
     //endregion
@@ -756,7 +666,7 @@ public class PersonRestController {
      * @param id Идентификатор сотрудника
      * @return Если все нормально, возвращаем HttpStatus.OK, иначе возвращаем ошибку в ApiError
      */
-    @DeleteMapping(Url.PERSON_API)
+    @DeleteMapping(Url.PERSON)
     public ResponseEntity<?> deletePerson(@PathVariable Long id, @RequestParam(value = "date", required = true) String date) {
         Date datUvol = null;
 
@@ -764,34 +674,34 @@ public class PersonRestController {
         try {
             datUvol = Util.strToDate(date);
         } catch (RuntimeException ex) {
-            ApiError apiError = new ApiError(
+            ErrorDetail errorDetail = new ErrorDetail(
                     HttpStatus.BAD_REQUEST,
                     "Некорректный параметр",
                     "Дата увольнения не указана или указана некорректно"
             );
-            return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }//endregion
 
         //region Получаем сотрудника по id
         Person person = personService.getById(id);
         if (person == null) {
-            ApiError apiError = new ApiError(
+            ErrorDetail errorDetail = new ErrorDetail(
                     HttpStatus.NOT_FOUND,
                     "ID сотрудника указан неверно",
                     "Сотрудник с ID= " + id + " не найден"
             );
-            return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }//endregion
 
         //region Проверяем, что дата увольнения не меньше даты приема + 1 день
         Date datPrin = person.getDatPrin();
         if (datPrin != null && !datPrin.before(datUvol)) {
-            ApiError apiError = new ApiError(
+            ErrorDetail errorDetail = new ErrorDetail(
                     HttpStatus.BAD_REQUEST,
                     "Некорректный параметр",
                     "Дата увольнения должна быть больше даты принятия (" + Util.dateToStr(datPrin) + ")"
             );
-            return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }
         //endregion
 
@@ -809,7 +719,7 @@ public class PersonRestController {
     //region === Получение/Сохранение фотографии ================================================================================
 
     // Получение фотографии из папки и выдача в виде байтового массива
-    @GetMapping(Url.PERSON_PHOTO_API)
+    @GetMapping(Url.PERSON_PHOTO)
     @ResponseBody
     public byte[] getPhoto(@PathVariable long id) {
         Path path = Paths.get(filesPath + "/photo/" + id + ".jpg" );
@@ -823,7 +733,7 @@ public class PersonRestController {
     }
 
     // Добавление фотографии
-    @PostMapping(Url.PERSON_API + "/uploadphoto")
+    @PostMapping(Url.PERSON + "/uploadphoto")
     @ResponseBody
     public FileUploadResult uploadPhoto(@PathVariable Long id, @RequestParam(value="personPhoto", required=false) MultipartFile image) {
         String path = filesPath + "/photo/" + id + ".jpg";
