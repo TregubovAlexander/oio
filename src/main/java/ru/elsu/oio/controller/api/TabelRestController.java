@@ -97,27 +97,34 @@ public class TabelRestController {
         try {
             // TODO: Что делать в ответ на запрос? отдать существующий файл или сгенерировать новый? или выдать ошибку, если файл с табелем еще не сгенерирован?)
 
-            //region Получаем список сотрудников для табеля
+            //region Получаем список всех сотрудников для табеля, с учетом дат начала и окончания должности
             List<Person> personList = personService.getAll();
-            List<PersonForTabel> persons = new ArrayList<>();
+            List<PersonForTabel> pftList = new ArrayList<>();
             for (Person person : personList) {
                 for (Post post : person.getPostList()) {
-                    if (post.getActive()) {
-                        persons.add(new PersonForTabel(
+
+
+                    if (post.forTabel(year, month)) {
+                        pftList.add(new PersonForTabel(
                                 person.getId(),
                                 person.getSurname(),
                                 person.getName(),
                                 person.getPatronymic(),
                                 post.getStavka(),
                                 person.getTabNo(),
-                                post.getDol().getShortName()
+                                post.getDol().getShortName(),
+                                post.getActive(),
+                                post.getDateBegin(),
+                                post.getDateEnd()
                         ));
                     }
+
+
                 }
             }
 
             // Сортируем список сотрудников по фамилии
-            persons.sort(new Comparator<PersonForTabel>() {
+            pftList.sort(new Comparator<PersonForTabel>() {
                 @Override
                 public int compare(PersonForTabel lhs, PersonForTabel rhs) {
                     String str1 = lhs.getSurname();
@@ -129,7 +136,7 @@ public class TabelRestController {
             //endregion
 
             // Создаем файл с табелем
-            createTabel(year, month, persons);
+            createTabel(year, month, pftList);
 
             // Отдаем файл по HTTP
             //TODO:
@@ -182,15 +189,24 @@ public class TabelRestController {
         AreaReference areaRef;
         String s;
 
-
         // Получаем лист с табелем (первый и единственный в книге)
         sheet = wb.getSheetAt(0); //XSSFSheet sheet = wb.getSheet("Табель");
         //endregion
 
-        //region Заполняем день, месяц и год табеля
-        String[] monthNames = {"ЯНВАРЯ", "ФЕВРАЛЯ", "МАРТА", "АПРЕЛЯ", "МАЯ", "ИЮНЯ", "ИЮЛЯ", "АВГУСТА", "СЕНТЯБРЯ", "ОКТЯБРЯ", "НОЯБРЯ", "ДЕКАБРЯ"};
-        Calendar calendar = new GregorianCalendar(year, month - 1, 1);
+        //region Даты
+        Calendar calendar = new GregorianCalendar();
+
+        calendar.set(year, month - 1, 1);
         int dayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH); // Число дней в месяце
+        Date tabelFirstDate = calendar.getTime();
+
+        calendar.set(year, month - 1, dayOfMonth);
+        Date tabelLastDate = calendar.getTime();
+
+        String[] monthNames = {"ЯНВАРЯ", "ФЕВРАЛЯ", "МАРТА", "АПРЕЛЯ", "МАЯ", "ИЮНЯ", "ИЮЛЯ", "АВГУСТА", "СЕНТЯБРЯ", "ОКТЯБРЯ", "НОЯБРЯ", "ДЕКАБРЯ"};
+        //endregion
+
+        //region Заполняем день, месяц и год табеля
         String sYear = String.format("%02d", year % 100);
         ExcelUtil.getNamedCell("tabelDay", wb).setCellValue(Integer.toString(dayOfMonth));
         ExcelUtil.getNamedCell("tabelMonth", wb).setCellValue(monthNames[month - 1]);
@@ -311,12 +327,7 @@ public class TabelRestController {
         //endregion
 
         //region Получаем список особенных дней и список праздников
-        Date d1, d2;
-        calendar.set(year, month - 1, 1);
-        d1 = calendar.getTime();
-        calendar.set(year, month - 1, dayOfMonth);
-        d2 = calendar.getTime();
-        tabelSpecialDays = tabelService.getTabelDays(d1, d2);
+        tabelSpecialDays = tabelService.getTabelDays(tabelFirstDate, tabelLastDate);
         tabelHolidays = tabelService.getTabelHolidays(year, month);
         //endregion
 
@@ -362,8 +373,8 @@ public class TabelRestController {
                 db = td.getDateBegin();
                 de = td.getDateEnd();
 
-                if (db.before(d1)) db = d1;
-                if (de.after(d2)) de = d2;
+                if (db.before(tabelFirstDate)) db = tabelFirstDate;
+                if (de.after(tabelLastDate)) de = tabelLastDate;
 
                 Calendar cal = GregorianCalendar.getInstance();
                 cal.setTime(db);
@@ -382,11 +393,37 @@ public class TabelRestController {
             //region Цикл по дням месяца
             int[] yavka = {0, 0};
             int[] neyavka = {0, 0};
+
+            //region Получаем дни начала и конца должности
+            int dolDayBegin = 1;
+            int dolDayEnd = dayOfMonth;
+            Calendar cal = Calendar.getInstance();
+            if (!pt.getDolActive()) {
+                Date dolDateEnd = pt.getDolDateEnd();
+                if (dolDateEnd != null) {
+                    cal.setTime(dolDateEnd);
+                    dolDayEnd = cal.get(Calendar.DAY_OF_MONTH);
+                }
+            } else {
+                Date dolDateBegin = pt.getDolDateBegin();
+                if (dolDateBegin.after(tabelFirstDate)) {
+                    if (dolDateBegin != null) {
+                        cal.setTime(dolDateBegin);
+                        dolDayBegin = cal.get(Calendar.DAY_OF_MONTH);
+                    }
+                }
+            }
+            //endregion
+
             short cellColor = IndexedColors.WHITE.getIndex();
             for (int d = 1; d <= dayOfMonth; d++) {
                 cell1 = null; cell2 = null;
                 calendar.set(Calendar.DAY_OF_MONTH, d);
                 TabelHolidays th = getHoliday(calendar);
+
+                // В этот день сотрудник числился работающим? (Может еще не был принят, или уже был уволен)
+                if ( !pt.getDolActive() && (d > dolDayEnd) ) continue;
+                if ( pt.getDolActive() && (d < dolDayBegin) ) continue;
 
                 // Определяем является ли день особенным
                 SprTabelNotation tnDayKod = mapDays.get(d);
@@ -520,9 +557,7 @@ public class TabelRestController {
         }
         range2.setLastRow(rowNum - 1);
 
-        //region
-
-        //endregion Устанавливаем толстые рамки вокруг ячеек на первом и втором листе
+        //region Устанавливаем толстые рамки вокруг ячеек на первом и втором листе
         ExcelUtil.setRangeBorder(BorderStyle.MEDIUM, range1, sheet);
         ExcelUtil.setRangeBorder(BorderStyle.MEDIUM, range2, sheet);
         //endregion

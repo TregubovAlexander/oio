@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter @Setter
 @AllArgsConstructor
 public class PersonForTabel {
@@ -14,4 +16,7 @@ public class PersonForTabel {
     private Float  stavka;                  // Число ставок
     private String tabNo;                   // Табельный номер
     private String dolName;                 // Название должности
+    private Boolean dolActive;              // Активна ли должность
+    private Date dolDateBegin;              // Дата назначения на должность
+    private Date dolDateEnd;                // Дата окончания должности
 }

@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Calendar;
 import java.util.Date;
 
 @Entity
@@ -30,5 +31,29 @@ public class Post {
     private Date dateEnd;                   // Дата завершения должность
     private Float stavka;                   // Число ставок
     private Boolean active;                 // Активная или нет
+
+    /**
+     * Проверяет нужно ли включать данную должность сотрудника в табель.
+     * Включать нужно, если должность активная или если дата начала или дата окончания должности попадают в табель.
+     * @param year  год за который делается табель
+     * @param month месяц за который делается табель
+     * @return true - нужно включать, false - не нужно
+     */
+    public boolean forTabel(int year, int month) {
+
+        if (this.getActive()) return true;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(this.getDateBegin());
+        int yearBegin = calendar.get(Calendar.YEAR);
+        int monthBegin = calendar.get(Calendar.MONTH) + 1;
+        calendar.setTime(this.getDateEnd());
+        int yearEnd = calendar.get(Calendar.YEAR);
+        int monthEnd = calendar.get(Calendar.MONTH) + 1;
+
+        if ( ((yearBegin == year) && (monthBegin == month)) || ((yearEnd == year) && (monthEnd == month)) ) return true;
+
+        return false;
+    }
 
 }
