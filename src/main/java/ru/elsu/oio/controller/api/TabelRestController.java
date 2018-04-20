@@ -7,10 +7,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.elsu.oio.Url;
 import ru.elsu.oio.dto.ErrorDetail;
 import ru.elsu.oio.entity.*;
@@ -49,20 +46,9 @@ public class TabelRestController {
 
 
 
-
-
-
-
-
-
-
-
-
-    //region === Отдаем файл по HTTP ============================================================================================
-    //@GetMapping(Url.TABEL)
-//    public HttpEntity<byte[]> sendTabelFile(@PathVariable int year, @PathVariable int month) {
-
-    public HttpEntity<byte[]> sendTabelFile(int year, int month) {
+    //region === GET - Отдаем файл с табелем по HTTP ============================================================================
+    @GetMapping(Url.TABEL)
+    public HttpEntity<byte[]> sendTabelFile(@PathVariable int year, @PathVariable int month) {
         String fileName = "tabel-" + Integer.toString(year) + "-" + String.format("%02d", month) + ".xlsx";
 
         Path path = Paths.get(filesPath + "//tabel//" + fileName);
@@ -84,25 +70,22 @@ public class TabelRestController {
     //endregion
 
 
-    //region === Получение XLSX файла с табелем за указанный год/месяц ==========================================================
+    //region === POST - Создаем табель за указанный год/месяц  и сохраняем на сервере в виде XLSX файла =========================
     /**
-     * Создание и выдача пользователю по HTTP отчета в формате XLSX с табелем за указанные год и месяц
+     * Создание табеля за указанные год и месяц и сохранение его на сервере в формате XLSX
      *
      * @param year   - год за который делается табель
      * @param month  - месяц за который делается табель
      */
-    @GetMapping(Url.TABEL)
+    @PostMapping(Url.TABEL)
     public ResponseEntity<?> getTabel(@PathVariable int year, @PathVariable int month) {
 
         try {
-            // TODO: Что делать в ответ на запрос? отдать существующий файл или сгенерировать новый? или выдать ошибку, если файл с табелем еще не сгенерирован?)
-
-            //region Получаем список всех сотрудников для табеля, с учетом дат начала и окончания должности
-            List<Person> personList = personService.getAll();
+            //region Получаем список всех сотрудников для табеля, с учетом дат начала и окончания должности (в том числе уволенных)
+            List<Person> personList = personService.getForTabel(year, month);
             List<PersonForTabel> pftList = new ArrayList<>();
             for (Person person : personList) {
                 for (Post post : person.getPostList()) {
-
 
                     if (post.forTabel(year, month)) {
                         pftList.add(new PersonForTabel(
@@ -118,7 +101,6 @@ public class TabelRestController {
                                 post.getDateEnd()
                         ));
                     }
-
 
                 }
             }
@@ -138,11 +120,6 @@ public class TabelRestController {
             // Создаем файл с табелем
             createTabel(year, month, pftList);
 
-            // Отдаем файл по HTTP
-            //TODO:
-
-
-
         } catch (FileNotFoundException e) { //TODO: подумать над исключениями - лучше генерировать самостоятельно разные исключения и передавать наверх в этото метод (из createTabel)
             String err = e.getMessage();
             ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка FileNotFoundException", err);
@@ -157,8 +134,6 @@ public class TabelRestController {
             return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
         }
 
-
-        // TODO: вернуть файл с табелем
         return new ResponseEntity<>(HttpStatus.OK);
     }
     //endregion
@@ -398,32 +373,23 @@ public class TabelRestController {
             int dolDayBegin = 1;
             int dolDayEnd = dayOfMonth;
             Calendar cal = Calendar.getInstance();
-            if (!pt.getDolActive()) {
-                Date dolDateEnd = pt.getDolDateEnd();
-                if (dolDateEnd != null) {
-                    cal.setTime(dolDateEnd);
-                    dolDayEnd = cal.get(Calendar.DAY_OF_MONTH);
-                }
-            } else {
-                Date dolDateBegin = pt.getDolDateBegin();
-                if (dolDateBegin.after(tabelFirstDate)) {
-                    if (dolDateBegin != null) {
-                        cal.setTime(dolDateBegin);
-                        dolDayBegin = cal.get(Calendar.DAY_OF_MONTH);
-                    }
-                }
+            Date dolDateBegin = pt.getDolDateBegin();
+            if (dolDateBegin.compareTo(tabelFirstDate) > 0) {
+                cal.setTime(dolDateBegin);
+                dolDayBegin = cal.get(Calendar.DAY_OF_MONTH);
+            }
+            Date dolDateEnd = pt.getDolDateEnd();
+            if (dolDateEnd != null && dolDateEnd.compareTo(tabelLastDate) < 0) {
+                cal.setTime(dolDateEnd);
+                dolDayEnd = cal.get(Calendar.DAY_OF_MONTH);
             }
             //endregion
 
             short cellColor = IndexedColors.WHITE.getIndex();
-            for (int d = 1; d <= dayOfMonth; d++) {
+            for (int d = dolDayBegin; d <= dolDayEnd; d++) {
                 cell1 = null; cell2 = null;
                 calendar.set(Calendar.DAY_OF_MONTH, d);
                 TabelHolidays th = getHoliday(calendar);
-
-                // В этот день сотрудник числился работающим? (Может еще не был принят, или уже был уволен)
-                if ( !pt.getDolActive() && (d > dolDayEnd) ) continue;
-                if ( pt.getDolActive() && (d < dolDayBegin) ) continue;
 
                 // Определяем является ли день особенным
                 SprTabelNotation tnDayKod = mapDays.get(d);

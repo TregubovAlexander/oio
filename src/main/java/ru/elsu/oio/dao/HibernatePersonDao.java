@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.elsu.oio.controller.exeption.ResourceNotFoundException;
 import ru.elsu.oio.entity.Person;
+import ru.elsu.oio.tabel.Tabel;
 
 import java.util.Date;
 import java.util.List;
@@ -58,6 +59,21 @@ public class HibernatePersonDao implements PersonDao {
         for (Person person : persons) {
             Hibernate.initialize(person.getChildrenList()); // Насильно инициализируем списком детей
         }
+        return persons;
+    }
+
+    /**
+     *  Список сотрудников для табеля (все работающие и все уволенные в данном месяце)
+     * @param year год за который формируется табель
+     * @param month месяц за который формируется табель
+     * @return список объектов Person
+     */
+    @SuppressWarnings("unchecked")
+    public List<Person> getForTabel(int year, int month) {
+        List<Person> persons = getCurrentSession().getNamedQuery("Person.getForTabel")
+                .setParameter("date1", Tabel.getFirstDate(year, month))
+                .setParameter("date2", Tabel.getLastDate(year, month))
+                .list();
         return persons;
     }
 

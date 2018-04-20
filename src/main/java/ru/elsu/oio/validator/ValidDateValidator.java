@@ -16,11 +16,13 @@ public class ValidDateValidator implements ConstraintValidator<ValidDate, String
     }
 
     @Override
-    public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
         SimpleDateFormat dateParser = new SimpleDateFormat(constraintAnnotation.pattern());
-        if (s == null || s.trim().isEmpty()) return true;
+
+        if ((value == null || value.trim().isEmpty())) return true;
+
         try {
-            final Date d = dateParser.parse(s);
+            final Date d = dateParser.parse(value);
             return true;
         } catch (ParseException ex) {
             return false;

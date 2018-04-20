@@ -36,6 +36,11 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
+    public List<Person> getForTabel(int year, int month) {
+        return personDao.getForTabel(year, month);
+    }
+
+    @Override
     public boolean personExists(PersonDto personDto) {
         return (Person)personDao.get(
                 personDto.getSurname(),

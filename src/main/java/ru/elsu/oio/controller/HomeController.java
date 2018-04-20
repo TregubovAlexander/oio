@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.thymeleaf.spring.support.Layout;
 import ru.elsu.oio.Url;
 import ru.elsu.oio.ace.AceAdmin;
-import ru.elsu.oio.dao.PersonDao;
 
 @Controller
 public class HomeController {
@@ -26,7 +25,7 @@ public class HomeController {
         return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
     }
 
-    // ===   Login   ===================================================================================================
+    //region ===   Login   ======================================================================================================
     @Layout(value = "layouts/login")
     @RequestMapping(Url.LOGIN_PAGE)
     public String login(ModelMap model) {
@@ -35,14 +34,14 @@ public class HomeController {
         model.addAttribute("aceadmin",aceAdmin);
         return "";      // Интерсептор вернет шаблон (пустой вид не вставит)
     }
+    //endregion
 
-    // ===   Home   ====================================================================================================
+    //region ===   Home   =======================================================================================================
     @Layout(value = "layouts/default")  // Можно не писать, по-умолчанию и так default
     @RequestMapping(Url.INDEX_PAGE)
     public String home(ModelMap model) {
 
-        aceAdmin.getPage().setTitle("Отдел информатизации образования");
-        aceAdmin.getPage().setDescription("ЕГУ им. И.А. Бунина");
+        aceAdmin.setPageInfo(getMessage("department.full.name"), getMessage("organization.name"));
         aceAdmin.getPage().setInline_scripts(true);
 
         model.addAttribute("aceadmin",aceAdmin);
@@ -52,7 +51,7 @@ public class HomeController {
 
         return "home";
     }
-
+    //endregion
 
 
 

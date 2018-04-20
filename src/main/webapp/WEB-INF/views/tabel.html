@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"><head>
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="../../resources/css/bootstrap.css" />
+    <link rel="stylesheet" href="../../resources/components/font-awesome/css/font-awesome.css" />
+    <!-- text fonts -->
+    <link rel="stylesheet" href="../../resources/css/ace-fonts.css" />
+    <!-- ace styles -->
+    <link rel="stylesheet" href="../../resources/css/ace.css" class="ace-main-stylesheet" id="main-ace-style" />
+    <link rel="stylesheet" href="../../resources/css/ace-skins.css" />
+    <link rel="stylesheet" href="../../resources/css/ace-rtl.css" />
+</head><body><div th:fragment="content" th:remove="tag">
+
+
+    <!-- Заголовки вкладок -->
+    <ul class="nav nav-tabs" id="tabelTab">
+        <li class="active">
+            <a data-toggle="tab" href="#getTabel">
+                <i class="pink ace-icon fa fa-files-o bigger-120"></i> Получить табель
+            </a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#createTabel">
+                <i class="blue ace-icon fa fa-table bigger-120"></i> Создать табель
+            </a>
+        </li>
+
+    </ul><!-- /Заголовки вкладок -->
+
+    <!-- Содержимое вкладок -->
+    <div class="tab-content padding-24">
+
+        <!-- Получить табель -->
+        <div id="getTabel" class="tab-pane fade in active">
+
+            <div class="row">
+
+
+
+
+
+
+                <!-- Список табелей -->
+                <div class="space-4"></div>
+
+
+
+
+                <div id="tabel-feed" class="profile-feed">
+                    <div class="profile-activity clearfix" th:each="tabel : ${tabelList}">
+                        <div>
+
+                            <a href="#" th:href="@{/api/tabel/{year}/{month}(year=${tabel.year}, month=${tabel.month})}">
+                                <i class="green ace-icon fa fa-file-excel-o bigger-100 "></i>&nbsp;
+                                Табель за <th:block th:text="${tabel.monthName}" /> <th:block th:text="${tabel.year}" /> года
+                            </a>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+                <!-- /Список табелей -->
+
+
+
+
+
+
+
+
+            </div>
+
+
+
+
+        </div><!-- /Получить табель -->
+
+        <!-- Создать табель -->
+        <div id="createTabel" class="tab-pane fade">
+
+        </div><!-- /Создать табель -->
+
+    </div><!-- /Содержимое вкладок -->
+
+
+
+
+
+</div></body></html>

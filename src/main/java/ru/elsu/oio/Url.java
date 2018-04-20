@@ -24,7 +24,11 @@ public final class Url {
     // Фото сотрудника (API)
     public static final String PERSON_PHOTO             = "/getphoto/{id}";
 
-    // Табель (API)
+    // DOC
+    public static final String DOC                      = "/doc";
+
+    // Табель
+    public static final String TABEL_PAGE               = "/tabel";
     public static final String TABEL                    = "/tabel/{year}/{month}";
 
 

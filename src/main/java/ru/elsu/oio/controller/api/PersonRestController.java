@@ -162,7 +162,6 @@ public class PersonRestController {
         Date d1,d2;
         Float f;
 
-        //TODO: для должностей и детей сделать возможность частичного заполнения данных
         //TODO: Реализовать проверку адреса по КЛАДР. Некорректный адрес не добавлять! Пока сохраняется все, что передали
 
         //region ФИО, ДР, пол
@@ -173,178 +172,76 @@ public class PersonRestController {
         person.setDr(Util.strToDate(dto.getDr()));
         person.setGender(dto.getGender());
         //endregion
-
-        //region Адрес TODO: Valid
-        Boolean newAddress = false;
+        //region Адрес
         AddressDto addressDto = dto.getAddress();
         if (addressDto != null) {
-            // Начинаем править только если хотя бы одно поле заполнено
-            Boolean someFieldsNotNull = false;
-            for (Field field : addressDto.getClass().getDeclaredFields()) {
-                try {
-                    field.setAccessible(true);
-                    if (field.get(addressDto) != null) {
-                        someFieldsNotNull = true;
-                        break;
-                    }
-                } catch (IllegalAccessException e) {}
+            Address address = person.getAddress();
+            if (address == null) {
+                address = new Address();
+                address.setPerson(person);
             }
-            if (someFieldsNotNull) {
-                Address address = person.getAddress();
-                if (address == null) {
-                    address = new Address();
-                    address.setPerson(person);
-                    newAddress = true;
-                }
-                //region streetId
-                s = addressDto.getStreetId();
-                if (s != null) {
-                    s = s.replaceAll("[^0-9]", ""); // удалится все кроме цифр
-                    if (!s.isEmpty()) {
-                        address.setStreetId(s);
-                    } else {
-                        throw new IncorrectUserDataException("Поле address.streetId обязательно к заполнению");
-                    }
-                } else {
-                    if (newAddress) throw new IncorrectUserDataException("Поле address.Id обязательно к заполнению");
-                }//endregion
-                //region zip
-                s = addressDto.getZip();
-                if (s != null) {
-                    s = s.replaceAll("[^0-9]", "");
-                    if (s.isEmpty()) s = null;
-                    address.setZip(s);
-                }//endregion
-                // region region
-                s = address.getRegion();
-                if (s != null) {
-                    s = s.trim();
-                    if (s.isEmpty()) s = null;
-                    address.setRegion(s);
-                }//endregion
-                // region district
-                s = addressDto.getDistrict();
-                if (s != null) {
-                    s = s.trim();
-                    if (s.isEmpty()) s = null;
-                    address.setDistrict(s);
-                }//endregion
-                // region city
-                s = addressDto.getCity();
-                if (s != null) {
-                    s = s.trim();
-                    if (!s.isEmpty()) {
-                        address.setCity(s);
-                    } else {
-                        throw new IncorrectUserDataException("Поле address.city обязательно к заполнению");
-                    }
-                } else {
-                    if (newAddress) throw new IncorrectUserDataException("Поле address.city обязательно к заполнению");
-                }//endregion
-                // region street
-                s = addressDto.getStreet();
-                if (s != null) {
-                    s = s.trim();
-                    if (s.isEmpty()) s = null;
-                    address.setStreet(s);
-                }//endregion
-                // region building
-                s = addressDto.getBuilding();
-                if (s != null) {
-                    s = s.trim();
-                    if (!s.isEmpty()) {
-                        address.setBuilding(s);
-                    } else {
-                        throw new IncorrectUserDataException("Поле address.building обязательно к заполнению");
-                    }
-                } else {
-                    if (newAddress) throw new IncorrectUserDataException("Поле address.building обязательно к заполнению");
-                }//endregion
-                // region kvartira
-                s = addressDto.getKvartira();
-                if (s != null) {
-                    s = s.trim();
-                    if (s.isEmpty()) s = null;
-                    address.setKvartira(s);
-                }//endregion
-                // region text
-                s = addressDto.getText();
-                if (s != null) {
-                    s = s.trim();
-                    if (!s.isEmpty()) {
-                        address.setText(s);
-                    } else {
-                        throw new IncorrectUserDataException("Поле address.text обязательно к заполнению");
-                    }
-                } else {
-                    if (newAddress) throw new IncorrectUserDataException("Поле address.text обязательно к заполнению");
-                }//endregion
-                person.setAddress(address);
+            // streetId
+            address.setStreetId(addressDto.getStreetId());
+            // zip
+            s = addressDto.getZip();
+            if (s != null) {
+                s = s.trim();
+                if (s.isEmpty()) s = null;
+                address.setZip(s);
             }
+            // region
+            s = address.getRegion();
+            if (s != null) {
+                s = s.trim();
+                if (s.isEmpty()) s = null;
+                address.setRegion(s);
+            }
+            // district
+            s = addressDto.getDistrict();
+            if (s != null) {
+                s = s.trim();
+                if (s.isEmpty()) s = null;
+                address.setDistrict(s);
+            }
+            // city
+            address.setCity(addressDto.getCity().trim());
+            // street
+            s = addressDto.getStreet();
+            if (s != null) {
+                s = s.trim();
+                if (s.isEmpty()) s = null;
+                address.setStreet(s);
+            }
+            // building
+            address.setBuilding(addressDto.getBuilding().trim());
+            // kvartira
+            s = addressDto.getKvartira();
+            if (s != null) {
+                s = s.trim();
+                if (s.isEmpty()) s = null;
+                address.setKvartira(s);
+            }
+            // text
+            address.setText(addressDto.getText().trim());
+
+            person.setAddress(address);
         }//endregion
-        //region Паспорт TODO: Valid
-        Boolean newPasport = false;
+        //region Паспорт
         PasportDto pasportDto = dto.getPasport();
         if (pasportDto != null) {
-            // Начинаем править только если хотя бы одно поле заполнено
-            if (pasportDto.getSer() != null || pasportDto.getNum() != null || pasportDto.getDat() != null || pasportDto.getOrg() != null){
-                Pasport pasport = person.getPasport();
-                if (pasport == null) {
-                    pasport = new Pasport();
-                    pasport.setPerson(person);
-                    newPasport = true;
-                }
-                //region серия
-                s = pasportDto.getSer();
-                if (s != null) {
-                    s = s.replaceAll("[^0-9]", ""); // удалится все кроме цифр
-                    if (s.length() == 4) {
-                        pasport.setSer(s);
-                    } else {
-                        throw new IncorrectUserDataException("Серия паспорта задана неверно");
-                    }
-                } else {
-                    if (newPasport) throw new IncorrectUserDataException("Все реквизиты паспорта обязательны к заполнению");
-                }//endregion
-                //region номер
-                s = pasportDto.getNum();
-                if (s != null) {
-                    s = s.replaceAll("[^0-9]", ""); // удалится все кроме цифр
-                    if (s.length() == 6) {
-                        pasport.setNum(s);
-                    } else {
-                        throw new IncorrectUserDataException("Номер паспорта задан неверно");
-                    }
-                } else {
-                    if (newPasport) throw new IncorrectUserDataException("Все реквизиты паспорта обязательны к заполнению");
-                }//endregion
-                //region дата выдачи
-                s = pasportDto.getDat();
-                if (s != null) {
-                    try {
-                        pasport.setDat(Util.strToDate(s));
-                    } catch (RuntimeException ex) {
-                        throw new IncorrectUserDataException("Дата выдачи паспорта указана неверно");
-                    }
-                } else {
-                    if (newPasport) throw new IncorrectUserDataException("Все реквизиты паспорта обязательны к заполнению");
-                }//endregion
-                //region кем выдан
-                s = pasportDto.getOrg();
-                if (s != null) {
-                    s = s.trim();
-                    if (!s.isEmpty()) {
-                        pasport.setOrg(s);
-                    } else {
-                        throw new IncorrectUserDataException("Не указано кем выдан паспорт");
-                    }
-                } else {
-                    if (newPasport) throw new IncorrectUserDataException("Все реквизиты паспорта обязательны к заполнению");
-                }//endregion
-                person.setPasport(pasport);
+            Pasport pasport = person.getPasport();
+            if (pasport == null) {
+                pasport = new Pasport();
+                pasport.setPerson(person);
             }
-        }//endregion
 
+            pasport.setSer(pasportDto.getSer());
+            pasport.setNum(pasportDto.getNum());
+            pasport.setDat(Util.strToDate(pasportDto.getDat()));
+            pasport.setOrg(pasportDto.getOrg().trim());
+
+            person.setPasport(pasport);
+        }//endregion
         //region Телефоны E-mail
         s = dto.getHomePhone();
         if (s != null) person.setHomePhone(Util.phoneNumberFormat(s));
@@ -356,13 +253,13 @@ public class PersonRestController {
         s = dto.getEmail();
         if (s != null) person.setEmail(s.trim());
         //endregion
-
-        //region Должности TODO: Valid
+        //region Должности
         List<PostDto> postDtoList = dto.getPosts();
         List<Post> postList = person.getPostList();
         Post post;
 
         if (postDtoList != null) {
+
             // Перебираем должности
             for (PostDto postDto : postDtoList) {
                 id = postDto.getId();
@@ -395,47 +292,31 @@ public class PersonRestController {
                     } else {
                         throw new IncorrectUserDataException("Должность отсутствует в справочнике");
                     }//endregion
-                    //region Дата начала
-                    s = postDto.getDateBegin();
-                    if ((s != null) && (s.trim() != "")) {
-                        try {
-                            post.setDateBegin(Util.strToDate(s));
-                        } catch (RuntimeException ex) {
-                            throw new IncorrectUserDataException("Дата начала должности указана некорректно");
-                        }
-                    } else {
-                        throw new IncorrectUserDataException("Дата начала должности - обязательный параметр");
-                    }//endregion
+                    // Дата начала
+                    post.setDateBegin(Util.strToDate(postDto.getDateBegin()));
                     //region Дата окончания
                     if (id > 0) {
                         s = postDto.getDateEnd();
                         if (s != null) {
+
                             s = s.trim();
                             if (s != "") {
-                                try {
-                                    d1 = post.getDateBegin();
-                                    d2 = Util.strToDate(s);
-                                    if (d2.after(d1)) {
-                                        post.setDateEnd(d2);
-                                    } else {
-                                        throw new IncorrectUserDataException("Дата окончания должности должна быть позже даты начала");
-                                    }
-                                } catch (RuntimeException ex) {
-                                    throw new IncorrectUserDataException("Дата окончания должности указана некорректно");
+                                d1 = post.getDateBegin();
+                                d2 = Util.strToDate(s);
+                                if (d2.after(d1)) {
+                                    post.setDateEnd(d2);
+                                } else {
+                                    throw new IncorrectUserDataException("Дата окончания должности должна быть позже даты начала");
                                 }
+                            } else {
+                                post.setDateEnd(null);
                             }
                         }
                     }
                     //endregion
-                    //region Ставка
+                    // Ставка
                     f = postDto.getStavka();
-                    if (f != null) {
-                        if (f == 0.25 || f == 0.5 || f == 0.75 || f == 1 || f == 1.25 || f == 1.5) {
-                            post.setStavka(f);
-                        } else {
-                            throw new IncorrectUserDataException("Ставка указана неверно");
-                        }
-                    }//endregion
+                    if (f != null) post.setStavka(f);
                     //region Активность
                     if (id > 0) {
                         b = postDto.getActive();
@@ -456,7 +337,6 @@ public class PersonRestController {
             }
         }
         //endregion Должности
-
         //region Дата принятия
         s = dto.getDatPrin();
         if (s != null) {
@@ -467,20 +347,16 @@ public class PersonRestController {
                 person.setDatPrin(null);
             }
         }//endregion
-
         //region Табельный номер
         s = dto.getTabNo();
-        if (s != null) {
-            s = s.replaceAll("[^0-9]", ""); // удалится все кроме цифр
-            person.setTabNo(s);
-        }//endregion
+        if (s != null) person.setTabNo(s.trim());
+        //endregion
         //region Состоит в браке
         b = dto.getSemPol();
         if (b != null) {
             person.setSemPol(b);
         }//endregion
-
-        //region Дети TODO: Valid
+        //region Дети
         List<ChildrenDto> childrenDtoList = dto.getChildrens();
         List<Children> childrenList = person.getChildrenList();
         Children children;
@@ -512,60 +388,18 @@ public class PersonRestController {
                 chSurname = ""; chName = ""; chPatronymic = ""; chDr = null; chGender = ""; chBirthSertificate = "";
 
                 s = childrenDto.getSurname();
-                if (s != null) {
-                    if (s.trim().toLowerCase().equals("delete")){
-                        chSurname = "delete";
-                    } else {
-                        if (Util.surnameIsValid(s)) {
-                            chSurname = Util.surnameCase(s);
-                        } else {
-                            throw new IncorrectUserDataException("Фамилия ребенка указана неверно: разрешены только русские буквы и один дефис или пробел в качестве разделителя, длина ограничена 30 символами");
-                        }
-                    }
-                }
-                s = childrenDto.getName();
-                if (s != null) {
-                    if (Util.nameIsValid(s)) {
-                        chName = Util.nameCase(s);
-                    } else {
-                        throw new IncorrectUserDataException("Имя ребенка указано неверно: разрешены только русские буквы, длина ограничена 30 символами");
-                    }
-                }
-                s = childrenDto.getPatronymic();
-                if (s != null) {
-                    if (Util.nameIsValid(s)) {
-                        chPatronymic = Util.nameCase(s);
-                    } else {
-                        throw new IncorrectUserDataException("Отчество ребенка указано неверно: разрешены только русские буквы, длина ограничена 30 символами");
-                    }
-                }
-                s = childrenDto.getDr();
-                try {
-                    chDr = Util.strToDate(s);
-                } catch (RuntimeException ex) {
-                    throw new IncorrectUserDataException("Дата рождения ребенка указана некорректно");
-                }
-
-                s = childrenDto.getGender();
-                if (s != null) {
-                    String c = Character.toString(s.trim().toLowerCase().charAt(0));
-                    if (new String("fm").contains(c)){
-                        chGender = c;
-                    } else {
-                        throw new IncorrectUserDataException("Пол ребенка указан неверно. Допустимые символы m и f");
-                    }
+                if (s.trim().toLowerCase().equals("delete")){
+                    chSurname = "delete";
                 } else {
-                    throw new IncorrectUserDataException("Пол ребенка обязателен к заполнению");
+                    chSurname = Util.surnameCase(s);
                 }
-
+                chName = Util.nameCase(childrenDto.getName());
+                chPatronymic = Util.nameCase(childrenDto.getPatronymic());
+                chDr = Util.strToDate(childrenDto.getDr());
+                chGender = childrenDto.getGender().toLowerCase();
                 s = childrenDto.getBirthSertificate();
                 if (s != null) {
-                    s = s.trim();
-                    if (Util.birthSertificateIsValid(s)) {
-                        chBirthSertificate = s.toUpperCase();
-                    } else {
-                        throw new IncorrectUserDataException("Свидетельство о рождении введено неверно. Формат: римское число дефис две русские буквы пробел шесть цифр");
-                    }
+                    chBirthSertificate = s.trim().toUpperCase();
                 } else {
                     chBirthSertificate = null;
                 }
@@ -606,7 +440,11 @@ public class PersonRestController {
                         children.setPatronymic(chPatronymic);
                         children.setDr(chDr);
                         children.setGender(chGender);
-                        if (chBirthSertificate != null) children.setBirthSertificate(chBirthSertificate);
+                        if (chBirthSertificate != null && !chBirthSertificate.isEmpty()) {
+                            children.setBirthSertificate(chBirthSertificate);
+                        } else {
+                            children.setBirthSertificate(null);
+                        }
                         //endregion
                     }
 
@@ -647,7 +485,6 @@ public class PersonRestController {
             }
         }
         //endregion
-
         //region Дополнительные сведения
         s = dto.getDopsved();
         if (s != null) {
@@ -708,6 +545,13 @@ public class PersonRestController {
         //region Увольняем сотрудника
         person.setUvolen(true);
         person.setDatUvol(datUvol);
+        for (Post post : person.getPostList()) {
+            if (post.getActive()) {
+                post.setActive(false);
+                post.setDateEnd(datUvol);
+            }
+        }
+
         personService.save(person);
         //endregion
 

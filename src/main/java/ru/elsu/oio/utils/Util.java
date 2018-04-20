@@ -120,6 +120,13 @@ public final class Util {
         return pattern.matcher(birthSertificate).matches();
     }
 
+    // Проверка правильности имени файла с табелем
+    public static boolean isCorrectTabelFileName(final String fileName) {
+        String regexp = "^tabel-\\d{4}-\\d{2}.xlsx$";
+        Pattern pattern = Pattern.compile(regexp, flags);
+        return pattern.matcher(fileName).matches();
+    }
+
     // Проверка на null
     public static <T> boolean isNull(T argument) {
         return (argument == null);

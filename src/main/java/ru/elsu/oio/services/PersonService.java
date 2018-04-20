@@ -11,6 +11,7 @@ public interface PersonService {
     public List<Person> getAll();
     public List<Person> getAllInitialized();
     public List<Person> getAllUvolen();
+    public List<Person> getForTabel(int year, int month);
     public boolean personExists(PersonDto personDto);
     public Person getByUserName(String userName); // TODO: может не нужен?
     public Person createPerson(PersonDto personDto);

@@ -9,6 +9,7 @@ public interface PersonDao {
     public Person getById(Long id);
     public List<Person> getAll(boolean uvolen);
     public List<Person> getAllInitialized(boolean uvolen);
+    public List<Person> getForTabel(int year, int month);
     public Person get(String surname, String name, String patronymic, Date dr, String gender);
     public Person getByUserName(String userName); // TODO: может не нужен?
     public void save(Person person);

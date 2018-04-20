@@ -13,4 +13,10 @@ public class AceAdmin {
     private List<Notification> notifications;
     private List<Message> messages;
     private List<SidebarItem> sidebarItems;
+
+    public void setPageInfo(String title, String description){
+        this.page.setTitle(title);
+        this.page.setDescription(description);
+    }
+
 }

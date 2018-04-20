@@ -1,8 +1,10 @@
 package ru.elsu.oio.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +27,7 @@ import java.util.List;
 import static ru.elsu.oio.ace.ScriptMapping.*;
 
 @Controller
-@PropertySources(value = { @PropertySource("classpath:/application.properties") })
+//@PropertySources(value = { @PropertySource("classpath:/application.properties") })
 public class PersonController {
 
     @Autowired
@@ -37,6 +39,14 @@ public class PersonController {
     @Autowired
     private SprService sprService;
 
+    @Autowired
+    MessageSource messageSource;
+    private String getMessage(String key){
+        return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+    }
+    private String getMessage(String key, Object[] args){
+        return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+    }
 
     // Загоняем в модель справочник должностей
     @ModelAttribute("sprDol")
@@ -46,12 +56,11 @@ public class PersonController {
 
 
 
-    // === Показ списка всех сотрудников отдела ========================================================================
+    //region === Показ списка всех сотрудников отдела ===========================================================================
     @GetMapping(Url.PERSONS)
     public String getAllPersons(ModelMap model) {
 
-        aceAdmin.getPage().setTitle("Отдел информатизации образования");
-        aceAdmin.getPage().setDescription("Список сотрудников");
+        aceAdmin.setPageInfo(getMessage("department.middle.name"), getMessage("person.list"));
         aceAdmin.getPage().setInline_scripts(true);
         aceAdmin.getPage().setStyles(Arrays.asList(StyleMapping.DATETIMEPICKER, StyleMapping.SWEETALERT2));
         aceAdmin.getPage().setScripts(Arrays.asList(MOMENT, DATETIMEPICKER, SWEETALERT2, FORMVALIDATION));
@@ -62,9 +71,10 @@ public class PersonController {
 
         return "persons";
     }
+    //endregion
 
 
-    // === Показ инормации о конкретном сотруднике с идентификатором id ================================================
+    //region === Показ инормации о конкретном сотруднике с идентификатором id ===================================================
     @GetMapping(Url.PERSON)
     public String getPersonById(@PathVariable Long id, ModelMap model, HttpServletRequest request) {
 
@@ -89,6 +99,7 @@ public class PersonController {
 
         return "person";
     }
+    //endregion
 
 
 

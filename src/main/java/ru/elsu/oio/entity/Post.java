@@ -2,6 +2,7 @@ package ru.elsu.oio.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.elsu.oio.tabel.Tabel;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -40,20 +41,10 @@ public class Post {
      * @return true - нужно включать, false - не нужно
      */
     public boolean forTabel(int year, int month) {
+        Date d1 = Tabel.getFirstDate(year, month);
+        Date d2 = Tabel.getLastDate(year, month);
+        return dateBegin.compareTo(d2) <= 0 & (dateEnd == null || dateEnd.compareTo(d1) >= 0);
 
-        if (this.getActive()) return true;
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(this.getDateBegin());
-        int yearBegin = calendar.get(Calendar.YEAR);
-        int monthBegin = calendar.get(Calendar.MONTH) + 1;
-        calendar.setTime(this.getDateEnd());
-        int yearEnd = calendar.get(Calendar.YEAR);
-        int monthEnd = calendar.get(Calendar.MONTH) + 1;
-
-        if ( ((yearBegin == year) && (monthBegin == month)) || ((yearEnd == year) && (monthEnd == month)) ) return true;
-
-        return false;
     }
 
 }

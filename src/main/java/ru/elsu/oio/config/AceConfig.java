@@ -50,8 +50,8 @@ public class AceConfig {
 
         // Параметры сайта
         Site site = new Site();
-        site.setTitle("Отдел информатизации образования");
-        site.setBrand_text("ОИО");
+        site.setTitle("Управление информатизации образования и информационной безопасности");
+        site.setBrand_text("УИОиИБ");
         site.setBrand_icon("fa fa-area-chart");
         site.setBrand_link(""); // Ссылка на корень WEB-приложения
         site.setAjax(false);

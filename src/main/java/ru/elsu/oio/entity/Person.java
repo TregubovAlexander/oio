@@ -15,6 +15,11 @@ import java.util.List;
         @NamedQuery(name = "Person.getAll",
                 query = "SELECT p FROM Person p WHERE p.uvolen=:uvolen ORDER BY p.surname"),
 
+        @NamedQuery(name = "Person.getForTabel",
+                query = "SELECT DISTINCT p FROM Person p left join p.postList AS post " +
+                        "WHERE (post.dateBegin <= :date2) AND (post.dateEnd is null OR post.dateEnd >= :date1) " +
+                        "ORDER BY p.surname"),
+
         @NamedQuery(name = "Person.getByFioDrGender",
                 query = "SELECT p FROM Person p WHERE p.uvolen=:uvolen AND p.surname  LIKE :surname AND p.name LIKE :name " +
                         "AND p.patronymic LIKE :patronymic AND p.dr=:dr AND p.gender=:gender ORDER BY p.surname"),
