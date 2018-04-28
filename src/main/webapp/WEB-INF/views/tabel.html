@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"><head>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:data="http://www.w3.org/1999/xhtml">
+<head>
     <!-- bootstrap & fontawesome -->
     <link rel="stylesheet" href="../../resources/css/bootstrap.css" />
     <link rel="stylesheet" href="../../resources/components/font-awesome/css/font-awesome.css" />
@@ -14,12 +15,12 @@
 
     <!-- Заголовки вкладок -->
     <ul class="nav nav-tabs" id="tabelTab">
-        <li class="active">
+        <li>
             <a data-toggle="tab" href="#getTabel">
                 <i class="pink ace-icon fa fa-files-o bigger-120"></i> Получить табель
             </a>
         </li>
-        <li>
+        <li class="active">
             <a data-toggle="tab" href="#createTabel">
                 <i class="blue ace-icon fa fa-table bigger-120"></i> Создать табель
             </a>
@@ -31,7 +32,7 @@
     <div class="tab-content padding-24">
 
         <!-- Получить табель -->
-        <div id="getTabel" class="tab-pane fade in active">
+        <div id="getTabel" class="tab-pane fade">
 
             <div class="row">
 
@@ -41,27 +42,16 @@
 
 
                 <!-- Список табелей -->
-                <div class="space-4"></div>
-
-
-
-
                 <div id="tabel-feed" class="profile-feed">
                     <div class="profile-activity clearfix" th:each="tabel : ${tabelList}">
                         <div>
-
                             <a href="#" th:href="@{/api/tabel/{year}/{month}(year=${tabel.year}, month=${tabel.month})}">
                                 <i class="green ace-icon fa fa-file-excel-o bigger-100 "></i>&nbsp;
                                 Табель за <th:block th:text="${tabel.monthName}" /> <th:block th:text="${tabel.year}" /> года
                             </a>
-
                         </div>
                     </div>
-
                 </div>
-
-
-
                 <!-- /Список табелей -->
 
 
@@ -79,7 +69,300 @@
         </div><!-- /Получить табель -->
 
         <!-- Создать табель -->
-        <div id="createTabel" class="tab-pane fade">
+        <div id="createTabel" class="tab-pane fade in active">
+
+            <!-- Контейнер виджетов -->
+            <div class="invisible" id="main-widget-container">
+                <div class="row">
+                    <div class="col-xs-12 widget-container-col" id="widget-container">
+
+                        <!-- Форма создания табеля -->
+                        <div class="widget-box widget-color-green" id="widget-tabel-create">
+                            <div class="widget-header">
+                                <h4 class="widget-title">Создать табель</h4>
+                                <div class="widget-toolbar">
+                                    <a href="#" data-action="collapse"><i class="ace-icon fa fa-chevron-up"></i></a>
+                                </div>
+                            </div>
+
+                            <div class="widget-body">
+                                <div class="widget-main">
+
+                                    <div class="space-6"></div>
+
+                                    <form id="formTabelCreate" class="form-horizontal compact-5">
+                                        <div class="row">
+
+                                            <div class="col-xs-12 col-sm-6 col-sm-offset-1">
+
+                                                <div class="form-group">
+                                                    <label class="col-xs-12 col-sm-5 control-label no-padding-right" for="tabelDateCreate">Выберите год и месяц:</label>
+                                                    <div class="col-xs-12 col-sm-7">
+                                                        <div class="input-group width-80 year-month" id="tabel-create-dtp" >
+                                                            <input type="text" class="form-control" id="tabelDateCreate" name="tabelDateCreate" />
+                                                            <span class="input-group-addon"><i class="ace-icon fa fa-calendar"></i></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="col-sm-4">
+                                                <button type="submit" class="btn btn-info btn-sm">
+                                                    <i class="ace-icon fa fa-check bigger-110"></i>&nbsp;Создать
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </form><!-- tabelCreateForm -->
+
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Форма создания табеля -->
+
+                        <div class="space-12"></div>
+
+
+                        <!-- Редактирование особенных дней -->
+                        <div class="widget-box widget-color-blue2" id="widget-specialdays-edit">
+                            <div class="widget-header">
+                                <h4 class="widget-title">Особенные дни</h4>
+                                <div class="widget-toolbar">
+                                    <a href="#" data-action="fullscreen" class="orange2"><i class="ace-icon fa fa-expand"></i></a>
+                                    <a href="#" data-action="collapse"><i class="ace-icon fa fa-chevron-up"></i></a>
+                                </div>
+                            </div>
+                            <div class="widget-body">
+                                <div class="widget-main">
+
+                                    <div class="space-6"></div>
+
+                                    <form class="form-horizontal compact-5">
+                                        <div class="row">
+                                            <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+
+                                                <div class="form-group">
+                                                    <label class="col-xs-12 col-sm-5 control-label no-padding-right" for="specialdays-date">Выберите год и месяц:</label>
+                                                    <div class="col-xs-12 col-sm-7">
+                                                        <div class="input-group width-80 year-month" id="speciadays-dtp" >
+                                                            <input type="text" class="form-control" id="specialdays-date" />
+                                                            <span class="input-group-addon"><i class="ace-icon fa fa-calendar"></i></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </form><!-- Выбор года/месяца -->
+
+                                    <table id="specialdays-table" class="table table-striped table-bordered table-hover">
+                                        <thead>
+                                        <tr class="no-padding">
+                                            <th class="width-30">ФИО</th>
+                                            <th class="width-30">Код</th>
+                                            <th class="width-10">Дата начала</th>
+                                            <th class="width-10">Дата окончания</th>
+                                            <th class="width-10"></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+
+
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+
+                                            <td>
+                                                <div class="hidden-sm hidden-xs action-buttons">
+                                                    <a class="green" href="#" th:title="#{control.edit}">
+                                                        <i class="ace-icon fa fa-pencil bigger-130"></i>
+                                                    </a>
+                                                    <a class="red person-delete" href="#" th:title="#{control.delete}">
+                                                        <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                                    </a>
+                                                </div>
+                                                <div class="hidden-md hidden-lg">
+                                                    <div class="inline pos-rel">
+                                                        <button class="btn btn-minier btn-yellow dropdown-toggle" data-toggle="dropdown" data-position="auto">
+                                                            <i class="ace-icon fa fa-caret-down icon-only bigger-120"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-menu-right dropdown-caret dropdown-close">
+                                                            <li>
+                                                                <a href="#" class="tooltip-success" data-rel="tooltip" th:title="#{control.edit}">
+                                                                    <span class="green"><i class="ace-icon fa fa-pencil-square-o bigger-120"></i></span>
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#" class="tooltip-error person-delete" data-rel="tooltip" th:title="#{control.delete}">
+                                                                    <span class="red"><i class="ace-icon fa fa-trash-o bigger-120"></i></span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+
+
+                                        </tbody>
+                                    </table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Редактирование праздничных дней -->
+
+
+
+
+
+
+
+
+
+
+
+
+                        <div class="space-12"></div>
+
+
+
+
+
+
+
+
+
+                        <!-- Редактирование праздничных дней -->
+                        <div class="widget-box widget-color-pink" id="widget-holidays-edit">
+                            <div class="widget-header">
+                                <h4 class="widget-title">Праздничные дни</h4>
+                                <div class="widget-toolbar">
+                                    <a href="#" data-action="fullscreen" class="orange2"><i class="ace-icon fa fa-expand"></i></a>
+                                    <a href="#" data-action="collapse"><i class="ace-icon fa fa-chevron-up"></i></a>
+                                </div>
+                            </div>
+                            <div class="widget-body">
+                                <div class="widget-main">
+
+                                    <p class="alert alert-info">
+                                        Nunc aliquam enim ut arcu aliquet adipiscing. Fusce dignissim volutpat justo non consectetur. Nulla fringilla eleifend consectetur.
+                                    </p>
+
+                                    <p class="alert alert-success">
+                                        Raw denim you probably haven't heard of them jean shorts Austin.
+                                    </p>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Редактирование праздничных дней -->
+
+
+
+
+
+
+
+
+
+
+                        <div class="space-12"></div>
+
+
+
+
+
+
+
+
+
+
+
+                        <!-- Редактирование обозначений табеля -->
+                        <div class="widget-box widget-color-grey" id="widget-tabelnotation-edit">
+                            <div class="widget-header">
+                                <h4 class="widget-title">Условные обозначения</h4>
+                                <div class="widget-toolbar">
+                                    <a href="#" data-action="fullscreen" class="orange2"><i class="ace-icon fa fa-expand"></i></a>
+                                    <a href="#" data-action="collapse"><i class="ace-icon fa fa-chevron-up"></i></a>
+                                </div>
+                            </div>
+                            <div class="widget-body">
+                                <div class="widget-main">
+
+                                    <p class="alert alert-info">
+                                        Nunc aliquam enim ut arcu aliquet adipiscing. Fusce dignissim volutpat justo non consectetur. Nulla fringilla eleifend consectetur.
+                                    </p>
+
+                                    <p class="alert alert-success">
+                                        Raw denim you probably haven't heard of them jean shorts Austin.
+                                    </p>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /Редактирование праздничных дней -->
+
+
+
+
+                        <div class="space-12"></div>
+
+
+
+
+
+
+                        <hr />
+                        <div class="text-center">
+                            <button type="reset" id="reset-widgets" class="btn btn-danger btn-white btn-bold btn-round">Сбросить состояние виджетов</button>
+                        </div>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         </div><!-- /Создать табель -->
 

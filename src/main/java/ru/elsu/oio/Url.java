@@ -30,6 +30,7 @@ public final class Url {
     // Табель
     public static final String TABEL_PAGE               = "/tabel";
     public static final String TABEL                    = "/tabel/{year}/{month}";
+    public static final String TABEL_SPECIAL_DAYS       = "/tabel/spdays/{year}/{month}";
 
 
 

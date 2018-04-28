@@ -9,8 +9,13 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.elsu.oio.Url;
 import ru.elsu.oio.ace.AceAdmin;
+import ru.elsu.oio.ace.StyleMapping;
 import ru.elsu.oio.services.TabelService;
 import ru.elsu.oio.tabel.Tabel;
+
+import java.util.Arrays;
+
+import static ru.elsu.oio.ace.ScriptMapping.*;
 
 @Controller
 public class TabelController {
@@ -34,7 +39,7 @@ public class TabelController {
     private String filesPath;
 
     @Value("${tabel.file.limit}")
-    private int tabelFileLimit;
+    private int tabelFilesLimit;
 
 
     //region ===   Табель - Начальная страница раздела ==========================================================================
@@ -43,11 +48,12 @@ public class TabelController {
 
         aceAdmin.setPageInfo(getMessage("ui.section.tabel.name"), getMessage("organization.name"));
         aceAdmin.getPage().setInline_scripts(true);
+        aceAdmin.getPage().setStyles(Arrays.asList(StyleMapping.DATETIMEPICKER, StyleMapping.SWEETALERT2, StyleMapping.JQUERY_UI));
+        aceAdmin.getPage().setScripts(Arrays.asList(JQUERY_UI1, JQUERY_UI2, MOMENT, DATETIMEPICKER, SWEETALERT2, FORMVALIDATION));
         model.addAttribute("aceadmin",aceAdmin);
 
-
-        // Загоняем в модель список файлов с табелем
-        model.addAttribute("tabelList", Tabel.getTabelList(filesPath + "/tabel/", tabelFileLimit));
+        // Список файлов с табелем
+        model.addAttribute("tabelList", Tabel.getTabelList(filesPath + "/tabel/", tabelFilesLimit));
 
 
 

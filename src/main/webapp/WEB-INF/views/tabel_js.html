@@ -8,24 +8,284 @@
 
             /* Основная логика */
             {
+                var $formTabelCreate = $('#formTabelCreate'),
+                    $widgetTabelCreate = $('#widget-tabel-create'),
+                    $widgetSpecialDaysEdit = $('#widget-specialdays-edit'),
+                    $dtpSpecialDays = $('#speciadays-dtp'),
+                    $tableSpDaysBody = $('#specialdays-table').find('tbody'),
+                    $templateRowSpDays = $tableSpDaysBody.find('tr:first').clone();
+
+
+
+                var TABEL_CREATE_URL = /*[[@{/api/tabel/}]]*/ 'http://localhost:8080/oio/api/tabel/2018/04',
+                    TABEL_GET_SPECIAL_DAYS = /*[[@{/api/tabel/spdays/}]]*/ 'http://localhost:8080/oio/api/tabel/spdays/2018/04';
+
+
+                // Создание табеля
+                var createTabel = function() {
+                    var tabelDate = $formTabelCreate.find('#tabel-create-dtp').data('DateTimePicker').date();
+                    var year = tabelDate.year();
+                    var month = tabelDate.month() + 1;
+                    var deferred = null;
+
+                    // Необходимо для того, чтобы Spring Sequrity разрешал Post Ajax запросы , если включена защита CSRF
+                    var csrfToken = $('meta[name="_csrf"]').attr('content');
+                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+                    $widgetTabelCreate.widget_box('reload'); // Запускаем крутилку
+
+                    var url = TABEL_CREATE_URL + year + '/' + month;
+
+                    deferred = $.ajax({
+                        url: url,
+                        type: 'POST',
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    });
+
+                    return deferred.promise();
+
+                }
+
+
+                // Получение списка особенных дней за год/месяц (выбирается в datetimepicker-е)
+                var getSpecialDays = function() {
+                    var tabelDate = $dtpSpecialDays.data('DateTimePicker').date();
+                    var year = tabelDate.year();
+                    var month = tabelDate.month() + 1;
+
+                    var deferred = null;
+
+                    // Необходимо для того, чтобы Spring Sequrity разрешал Post Ajax запросы , если включена защита CSRF
+                    var csrfToken = $('meta[name="_csrf"]').attr('content');
+                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+                    $widgetSpecialDaysEdit.widget_box('reload'); // Запускаем крутилку
+
+                    var url = TABEL_GET_SPECIAL_DAYS + year + '/' + month;
+
+                    deferred = $.ajax({
+                        url: url,
+                        type: 'GET',
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    });
+
+                    return deferred.promise();
+
+                }
+
+                // Заполнение таблицы особенными днями
+                var fillTableSpecialDays = function(data) {
+                    $tableSpDaysBody.empty();
+
+                    // Перебираем данные, формируем строки
+                    for (var i in data) {
+                        $el = $templateRowSpDays.clone();
+
+                        console.log(data[i]);
+                        $el.find('td:eq(0)').html(data.fullName);
+                        $el.find('td:eq(1)').html(data.kodName);
+
+
+
+
+
+                        $tableSpDaysBody.append($el);
+                    }
+
+                }
+
+
 
             }
 
 
             /* Валидация форм */
             {
+                // Валидация формы ввода даты создания табеля
+                {
+                    $formTabelCreate.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        fields: {
+                            tabelDateCreate: {
+                                validators: {
+                                    notEmpty: {
+                                        message: 'Поле обязательно для заполнения'
+                                    }
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            createTabel()
+                                .always(function (result) {
+
+                                    $widgetTabelCreate.trigger('reloaded.ace.widget'); // Отключаем крутилку
+
+                                    $.showUserMessage(
+                                        result,
+                                        'Табель создан!',
+                                        'Табель успешно создан и доступен для загрузки!',
+                                        'Ошибка создания табеля!',
+                                        function(){
+                                            location.reload();
+                                        });
+                                });
+
+
+
+
+                        }
+                    });
+                }
+
 
             }
 
 
             /* Настройка элементов страницы */
             {
+                // Настраиваем datepicker-ы
+                $('.year-month').datetimepicker({
+                    locale: 'ru',
+                    format: 'YYYY MMMM',
+                    showTodayButton: true,
+                    tooltips: {
+                        today: 'Текущий месяц'
+                    }
+                });
+
+                // Ревалидация поля даты после обновления значения в дейтпикере
+                $('#tabel-create-dtp').datetimepicker().on('dp.change', function (e) {
+                    $formTabelCreate.formValidation('revalidateField', 'tabelDateCreate');
+                });
+
+                // Обновление списка особенных дней после изменения даты
+                $dtpSpecialDays.datetimepicker().on('dp.change', function (e) {
+                    getSpecialDays()
+                        .done(function (result) {
+                            $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                            fillTableSpecialDays(result);
+                        });
+
+                });
+                // Устанавливаем текущую дату в дейтпикер (обязательно после обработчика события, иначе первый раз не сработает)
+                $dtpSpecialDays.data('DateTimePicker').date(new Date());
+
+                // Widget - контейнер
+                {
+                    $('.widget-container-col').sortable({
+                        connectWith: '.widget-container-col',
+                        items:'> .widget-box',
+                        handle: ace.vars['touch'] ? '.widget-title' : false,
+                        cancel: '.fullscreen',
+                        opacity:0.8,
+                        revert:true,
+                        forceHelperSize:true,
+                        placeholder: 'widget-placeholder',
+                        forcePlaceholderSize:true,
+                        tolerance:'pointer',
+                        start: function(event, ui) {
+                            // when an element is moved, it's parent becomes empty with almost zero height.
+                            // we set a min-height for it to be large enough so that later we can easily drop elements back onto it
+                            ui.item.parent().css({'min-height':ui.item.height()})
+                            //ui.sender.css({'min-height':ui.item.height() , 'background-color' : '#F5F5F5'})
+                        },
+                        update: function(event, ui) {
+                            ui.item.parent({'min-height':''})
+                            //p.style.removeProperty('background-color');
+
+
+                            // save widget positions
+                            var widget_order = {}
+                            $('.widget-container-col').each(function() {
+                                var container_id = $(this).attr('id');
+                                widget_order[container_id] = []
+
+
+                                $(this).find('> .widget-box').each(function() {
+                                    var widget_id = $(this).attr('id');
+                                    widget_order[container_id].push(widget_id);
+                                    // now we know each container contains which widgets
+                                });
+                            });
+
+                            ace.data.set('uio', 'widget-order', widget_order, null, true);
+                        }
+                    });
+
+                    // when a widget is shown/hidden/closed, we save its state for later retrieval
+                    $(document).on('shown.ace.widget hidden.ace.widget closed.ace.widget', '.widget-box', function (event) {
+                        var widgets = ace.data.get('uio', 'widget-state', true);
+                        if (widgets == null) widgets = {}
+
+                        var id = $(this).attr('id');
+                        widgets[id] = event.type;
+                        ace.data.set('uio', 'widget-state', widgets, null, true);
+                    });
+
+
+                    (function () {
+                        // restore widget order
+                        var container_list = ace.data.get('uio', 'widget-order', true);
+                        if (container_list) {
+                            for (var container_id in container_list) if (container_list.hasOwnProperty(container_id)) {
+
+                                var widgets_inside_container = container_list[container_id];
+                                if (widgets_inside_container.length == 0) continue;
+
+                                for (var i = 0; i < widgets_inside_container.length; i++) {
+                                    var widget = widgets_inside_container[i];
+                                    $('#' + widget).appendTo('#' + container_id);
+                                }
+
+                            }
+                        }
+
+
+                        // restore widget state
+                        var widgets = ace.data.get('uio', 'widget-state', true);
+                        if (widgets != null) {
+                            for (var id in widgets) if (widgets.hasOwnProperty(id)) {
+                                var state = widgets[id];
+                                var widget = $('#' + id);
+                                if
+                                (
+                                    (state == 'shown' && widget.hasClass('collapsed'))
+                                    ||
+                                    (state == 'hidden' && !widget.hasClass('collapsed'))
+                                ) {
+                                    widget.widget_box('toggleFast');
+                                }
+                                else if (state == 'closed') {
+                                    widget.widget_box('closeFast');
+                                }
+                            }
+                        }
+
+
+                        $('#main-widget-container').removeClass('invisible');
+
+
+                        // reset saved positions and states
+                        $('#reset-widgets').on('click', function () {
+                            ace.data.remove('uio', 'widget-state');
+                            ace.data.remove('uio', 'widget-order');
+                            document.location.reload();
+                        });
+
+                    })();
+                }
+
 
             }
-
-
-
-
 
 
             /* ****************************************************************************************************** */

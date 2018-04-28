@@ -67,5 +67,4 @@ public class ScriptMapping {
     public static final String EASY_PIE_CHART           = "components/_mod/easypiechart/jquery.easypiechart.js";
     public static final String KLADR                    = "components/kladrapi/jquery.kladr.min.js";
     public static final String YANDEX_MAPS              = "http://api-maps.yandex.ru/2.1/?lang=ru_RU";
-
 }

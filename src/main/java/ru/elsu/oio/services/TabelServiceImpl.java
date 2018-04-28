@@ -6,7 +6,9 @@ import ru.elsu.oio.dao.TabelSpecialDaysDao;
 import ru.elsu.oio.dao.TabelHolidaysDao;
 import ru.elsu.oio.entity.TabelSpecialDays;
 import ru.elsu.oio.entity.TabelHolidays;
+import ru.elsu.oio.tabel.Tabel;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -19,10 +21,15 @@ public class TabelServiceImpl implements TabelService {
     @Autowired
     TabelHolidaysDao tabelHolidaysDao;
 
-    //region TabelDays
+    //region === TabelDays ======================================================================================================
     @Override
     public List<TabelSpecialDays> getTabelDays(Date date1, Date date2) {
         return tabelSpecialDaysDao.get(date1, date2);
+    }
+
+    @Override
+    public List<TabelSpecialDays> getTabelDays(int year, int month) {
+        return getTabelDays(Tabel.getFirstDate(year, month), Tabel.getLastDate(year, month));
     }
 
     @Override
@@ -36,7 +43,7 @@ public class TabelServiceImpl implements TabelService {
     }
     //endregion
 
-    //region TabelHolidays
+    //region === TabelHolidays ==================================================================================================
     @Override
     public List<TabelHolidays> getTabelHolidays(int year, int month) {
         return tabelHolidaysDao.get(year, month);

@@ -15,6 +15,8 @@ import ru.elsu.oio.services.PersonService;
 import ru.elsu.oio.services.SprService;
 import ru.elsu.oio.services.TabelService;
 import ru.elsu.oio.tabel.PersonForTabel;
+import ru.elsu.oio.tabel.Tabel;
+import ru.elsu.oio.dto.TabelSpecialDaysDto;
 import ru.elsu.oio.utils.ExcelUtil;
 import ru.elsu.oio.utils.Util;
 
@@ -565,6 +567,33 @@ public class TabelRestController {
         wb.write(fileOutputStream);
         fileOutputStream.close();
         //endregion
+    }
+    //endregion
+
+
+    //region === GET - Список особенных дней табеля за указанные год/месяц ======================================================
+    @GetMapping(Url.TABEL_SPECIAL_DAYS)
+    public List<TabelSpecialDaysDto> getTabelSpecialDays(@PathVariable int year, @PathVariable int month) {
+
+        List<TabelSpecialDays> tsDays = tabelService.getTabelDays(year, month);
+        List<TabelSpecialDaysDto> tsDaysDtoList = new ArrayList<>();
+
+        for (TabelSpecialDays tsDay : tsDays) {
+            TabelSpecialDaysDto tsDayDto = new TabelSpecialDaysDto();
+
+            tsDayDto.setId(tsDay.getId());
+            tsDayDto.setPersonId(tsDay.getPerson().getId());
+            tsDayDto.setFullName(tsDay.getPerson().getFullName());
+            tsDayDto.setDateBegin(Util.dateToStr(tsDay.getDateBegin()));
+            tsDayDto.setDateEnd(Util.dateToStr(tsDay.getDateEnd()));
+            tsDayDto.setKodId(tsDay.getKod().getId());
+            tsDayDto.setKod(tsDay.getKod().getKod());
+            tsDayDto.setKodName(tsDay.getKod().getName());
+
+            tsDaysDtoList.add(tsDayDto);
+        }
+
+        return tsDaysDtoList;
     }
     //endregion
 

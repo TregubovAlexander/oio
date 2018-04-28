@@ -10,6 +10,7 @@ public interface TabelService {
 
     // TabelDays
     public List<TabelSpecialDays> getTabelDays(Date date1, Date date2);
+    public List<TabelSpecialDays> getTabelDays(int year, int month);
     public void saveTabelDays(TabelSpecialDays tabelSpecialDays);
     public void deleteTabelDays(TabelSpecialDays tabelSpecialDays);
 

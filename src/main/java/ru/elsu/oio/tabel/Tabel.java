@@ -8,7 +8,8 @@ public final class Tabel { // Класс не расширяемый, тольк
 
     private Tabel() {} // Создать экземпляр класса (инстанцировать) невозможно
 
-    //region === Список пар год/месяц на файлы с табелем ===============================================================================
+
+    //region === Список пар год/месяц на файлы с табелем ========================================================================
     /**
      * Получаем список пар чисел (год и месяц) для всех файлов с табелями, хранящихся в файловой системе сервера
      * @param path путь к папке в которой хранятся файлы табеля
@@ -51,19 +52,53 @@ public final class Tabel { // Класс не расширяемый, тольк
     }
     //endregion
 
-    // Дата первого дня табеля
+
+    //region === Дата первого дня табеля ========================================================================================
     public static Date getFirstDate(int year, int month) {
         Calendar calendar = new GregorianCalendar(year, month - 1, 1);
         return calendar.getTime();
     }
 
-    // Дата последнего дня табеля
+    // Дата первого дня табеля (текущий год и месяц)
+    public static Date getFirstDate() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        return calendar.getTime();
+    }
+    //endregion
+
+
+    //region === Дата последнего дня табеля =====================================================================================
     public static Date getLastDate(int year, int month) {
         Calendar calendar = new GregorianCalendar(year, month - 1, 1);
         int dayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         calendar.set(year, month - 1, dayOfMonth);
         return calendar.getTime();
     }
+
+    // Дата последнего дня табеля (текущий год и месяц)
+    public static Date getLastDate() {
+        Calendar calendar = Calendar.getInstance();
+        int dayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        return calendar.getTime();
+    }
+    //endregion
+
+
+    //region ===  ====
+
+    //endregion
+
+
+    //region ===  ====
+
+    //endregion
+
+
+    //region ===  ====
+
+    //endregion
 
 }
 
