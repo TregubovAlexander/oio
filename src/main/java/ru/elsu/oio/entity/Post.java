@@ -2,7 +2,10 @@ package ru.elsu.oio.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.elsu.oio.dao.PostDao;
+import ru.elsu.oio.dto.PostDto;
 import ru.elsu.oio.tabel.Tabel;
+import ru.elsu.oio.utils.Util;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -44,7 +47,20 @@ public class Post {
         Date d1 = Tabel.getFirstDate(year, month);
         Date d2 = Tabel.getLastDate(year, month);
         return dateBegin.compareTo(d2) <= 0 & (dateEnd == null || dateEnd.compareTo(d1) >= 0);
+    }
 
+
+    // Перегнать в DTO
+    public PostDto toDto() {
+        PostDto dto = new PostDto();
+        dto.setId(this.id);
+        dto.setDolId(this.dol.getId());
+        dto.setDolName(this.dol.getName());
+        dto.setDateBegin(Util.dateToStr(this.dateBegin));
+        dto.setDateEnd(Util.dateToStr(this.dateEnd));
+        dto.setStavka(this.stavka);
+        dto.setActive(this.active);
+        return dto;
     }
 
 }

@@ -64,44 +64,6 @@ public class PersonDto {
     private String datUvol;
 
 
-    // Конструктор из Person
-    public PersonDto(Person person) {
-        if (person == null) return;
-        this.id = person.getId();
-        this.surname = person.getSurname();
-        this.name = person.getName();
-        this.patronymic = person.getPatronymic();
-        this.fullName = person.getFullName();
-        this.dr = Util.dateToStr(person.getDr());
-        this.gender = person.getGender();
-        this.address = new AddressDto(person.getAddress());
-        this.pasport = new PasportDto(person.getPasport());
-        this.homePhone = person.getHomePhone();
-        this.workPhone = person.getWorkPhone();
-        this.mobilePhone = person.getMobilePhone();
-        this.email = person.getEmail();
-        this.semPol = person.getSemPol();
-        this.posts = new ArrayList<>();
-        List<Post> postList = person.getPostList();
-        if (postList != null) {
-            for (Post p : postList) {
-                posts.add(new PostDto(p));
-            }
-        }
-        this.datPrin = Util.dateToStr(person.getDatPrin());
-        this.tabNo = person.getTabNo();
-        this.dopsved = person.getDopsved();
-        this.childrens = new ArrayList<>();
-        List<Children> childrenList = person.getChildrenList();
-        if (childrenList != null) {
-            for (Children c : childrenList) {
-                childrens.add(new ChildrenDto(c));
-            }
-        }
-        this.uvolen = person.getUvolen();
-        this.datUvol = Util.dateToStr(person.getDatUvol());
-    }
-
     // Создание сотрудника Person из полученного JSON через REST
     // TODO: Дополнить (возможно)
     public Person toPerson(){

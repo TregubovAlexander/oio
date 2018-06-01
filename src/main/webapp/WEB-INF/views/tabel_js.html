@@ -13,12 +13,21 @@
                     $widgetSpecialDaysEdit = $('#widget-specialdays-edit'),
                     $dtpSpecialDays = $('#speciadays-dtp'),
                     $tableSpDaysBody = $('#specialdays-table').find('tbody'),
-                    $templateRowSpDays = $tableSpDaysBody.find('tr:first').clone();
+                    $templateRowSpDays = $tableSpDaysBody.find('tr:first').clone(),
+                    $modalSpDaysAdd = $('#modalSpDaysAdd'),
+                    $selSpDaysPerson = $('#spDaysPerson', $modalSpDaysAdd),
+                    $selSpDaysKod = $('#spDaysKod', $modalSpDaysAdd),
+                    $formSpDaysAdd = $('#formSpDaysAdd', $modalSpDaysAdd),
+                    $selectedSpDaysRange = $('#selectedSpDaysRange', $formSpDaysAdd),
+                    $dtpSpDaysRange = $('#spDaysRange', $formSpDaysAdd);
 
 
+                var TABEL_CREATE = /*[[@{/api/tabel/}]]*/ 'http://localhost:8080/oio/api/tabel/2018/04',
+                    TABEL_SPDAYS = /*[[@{/api/tabel/spdays/}]]*/ 'http://localhost:8080/oio/api/tabel/spdays/2018/04',
+                    SERVICE_GET_PERSONS = /*[[@{/api/service/persons}]]*/ 'http://localhost:8080/oio/api/service/persons',
+                    SERVICE_GET_TABELNOTATIONS = /*[[@{/api/service/tabelnotations}]]*/ 'http://localhost:8080/oio/api/service/tabelnotations';
 
-                var TABEL_CREATE_URL = /*[[@{/api/tabel/}]]*/ 'http://localhost:8080/oio/api/tabel/2018/04',
-                    TABEL_GET_SPECIAL_DAYS = /*[[@{/api/tabel/spdays/}]]*/ 'http://localhost:8080/oio/api/tabel/spdays/2018/04';
+                var newSpDaysId = 0;
 
 
                 // Создание табеля
@@ -26,26 +35,8 @@
                     var tabelDate = $formTabelCreate.find('#tabel-create-dtp').data('DateTimePicker').date();
                     var year = tabelDate.year();
                     var month = tabelDate.month() + 1;
-                    var deferred = null;
 
-                    // Необходимо для того, чтобы Spring Sequrity разрешал Post Ajax запросы , если включена защита CSRF
-                    var csrfToken = $('meta[name="_csrf"]').attr('content');
-                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
-
-                    $widgetTabelCreate.widget_box('reload'); // Запускаем крутилку
-
-                    var url = TABEL_CREATE_URL + year + '/' + month;
-
-                    deferred = $.ajax({
-                        url: url,
-                        type: 'POST',
-                        beforeSend: function(xhr) {
-                            xhr.setRequestHeader(csrfHeader, csrfToken);
-                        }
-                    });
-
-                    return deferred.promise();
-
+                    return $.myAjax(TABEL_CREATE + year + '/' + month, 'POST', $widgetTabelCreate);
                 }
 
 
@@ -55,129 +46,237 @@
                     var year = tabelDate.year();
                     var month = tabelDate.month() + 1;
 
-                    var deferred = null;
-
-                    // Необходимо для того, чтобы Spring Sequrity разрешал Post Ajax запросы , если включена защита CSRF
-                    var csrfToken = $('meta[name="_csrf"]').attr('content');
-                    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
-
-                    $widgetSpecialDaysEdit.widget_box('reload'); // Запускаем крутилку
-
-                    var url = TABEL_GET_SPECIAL_DAYS + year + '/' + month;
-
-                    deferred = $.ajax({
-                        url: url,
-                        type: 'GET',
-                        beforeSend: function(xhr) {
-                            xhr.setRequestHeader(csrfHeader, csrfToken);
-                        }
-                    });
-
-                    return deferred.promise();
-
+                    return $.myAjax(TABEL_SPDAYS + year + '/' + month, 'GET', $widgetSpecialDaysEdit);
                 }
+
 
                 // Заполнение таблицы особенными днями
-                var fillTableSpecialDays = function(data) {
+                var spDaysTableCreate = function(data) {
                     $tableSpDaysBody.empty();
-
-                    // Перебираем данные, формируем строки
                     for (var i in data) {
-                        $el = $templateRowSpDays.clone();
-
-                        console.log(data[i]);
-                        $el.find('td:eq(0)').html(data.fullName);
-                        $el.find('td:eq(1)').html(data.kodName);
+                        spDaysTableAddRow(data[i]);
+                    }
+                }
 
 
+                // Создание и заполнение одной строки таблицы особенными днями
+                var spDaysTableFillRow = function ($tr, data) {
+                    // Загоняем особенные дни в <tr>.data
+                    $tr.data('spDays', data);
+                    // Заполняем таблицу
+                    $tr.attr('id', 'spDaysTableRow_' + data.id);
+                    $td = $tr.find('td');
+                    $td.eq(0).html(data.fullName);
+                    $td.eq(1).html(data.kod + ' - ' + data.kodName);
+                    $td.eq(2).html(data.dateBegin);
+                    $td.eq(3).html(data.dateEnd);
+
+                    // Навешиваем обработчики
+                    $tr.find('a[href="#edit"]').off('click').on('click', spDaysRowEdit);
+                    $tr.find('a[href="#delete"]').off('click').on('click', spDaysRowDelete);
+                }
 
 
+                // Создание и заполнение одной строки таблицы особенными днями
+                var spDaysTableCreateRow = function (data) {
+                    $el = $templateRowSpDays.clone();
+                    spDaysTableFillRow($el, data);
+                    return $el;
+                }
 
-                        $tableSpDaysBody.append($el);
+
+                // Добавление строки в таблицу особенных дней
+                var spDaysTableAddRow = function(data) {
+                    var $row = spDaysTableCreateRow(data);
+                    $tableSpDaysBody.append($row);
+                }
+
+
+                // Изменение данных в строке таблицы особенных дней TODO: исправить
+                var spDaysTableUpdateRowData = function(data) {                     //console.log(JSON.stringify(data, null, '\t'));
+                    var $row = $('#spDaysTableRow_' + data.id, $tableSpDaysBody);   // Ищем строку таблицы, которую нужно обновить
+                    spDaysTableFillRow($row, data);                                 // Заполняем новыми данными
+                }
+
+
+                // Редактирование строки особенных дней
+                var spDaysRowEdit = function (e) {
+                    e.preventDefault();
+                    $modalSpDaysAdd.data('spDays', $(this).parents('tr').data('spDays'));
+
+                    $modalSpDaysAdd.modal();
+                }
+
+
+                // Удаление строки особенных дней
+                var spDaysRowDelete = function (e) {
+                    e.preventDefault();
+                    $tr = $(this).parents('tr');
+                    var id = $tr.data('spDays').id;
+                    spDaysDelete(id)
+                        .done(function (result) {
+                            $tr.remove();
+                        })
+                        .fail(function (result) {
+                            $.showErrorMessage(result, 'Ошибка удаления особенных дней!');
+                        })
+                        .always(function (result) {
+                            $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                        });
+
+
+                }
+
+
+                // Удаление особенных дней
+                var spDaysDelete = function(id) {
+                    return  $.myAjax(TABEL_SPDAYS + id, 'DELETE', $widgetSpecialDaysEdit);
+                }
+
+
+                // Получение списка объектов Id + Name по заданному URL
+                var getIdNameList = function(url) {
+                    return $.myAjax(url);
+                }
+
+
+                // Заполнение пунктов выпадающего списка (парами id + name)
+                var setSelectOptions = function($select, data, id) {
+                    id = id || 0;
+                    var options = '';
+                    $.each(data, function() {
+                        options += '<option ';
+                        if (this.id === id) options += ' selected ';
+                        options += ' value="' + this.id + '">' + this.name + '</option>';
+                    });
+                    $select.html(options);
+                }
+
+
+                // Клик по добавлению особенных дней
+                $('#spDaysAdd').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    $modalSpDaysAdd.data('spDays', {id: newSpDaysId - 1});
+                    $modalSpDaysAdd.modal();
+                })
+
+
+                // Добавление или обновление записи об особенных днях (успешная валидация формы)
+                var spDaysAddOrUpdate = function () {
+
+                    // Собираем данные с формы
+                    var id = $modalSpDaysAdd.data('spDays').id;
+                    var spDays = {id: id};
+                    spDays.personId = $selSpDaysPerson.val();
+                    spDays.dateBegin = $.formatDate($dtpSpDaysRange.find('input[name="start"]').datepicker('getDate'));
+                    spDays.dateEnd = $.formatDate($dtpSpDaysRange.find('input[name="end"]').datepicker('getDate'));
+                    spDays.kodId = $selSpDaysKod.val();
+                    // Закрываем диалог
+                    $modalSpDaysAdd.modal('hide');
+//console.log(JSON.stringify(spDays, null, '\t'));
+
+                    // Формируем запрос
+                    var url, type;
+                    if (id < 0) {
+                        url = TABEL_SPDAYS;
+                        type = 'POST';
+                    } else {
+                        url = TABEL_SPDAYS + id;
+                        type = 'PUT';
                     }
 
+                    return $.myAjax(url, type, $widgetSpecialDaysEdit, JSON.stringify(spDays));
                 }
 
 
+                // Обработчик события OnChange соответствующих инпутов (нужен в виде отдельной функции, т.к. будет отключаться)
+                var dtpSpDaysRangeInputChange = function (e) {
+                    $selectedSpDaysRange.val($(this).val());
+                    $formSpDaysAdd.formValidation('revalidateField', 'selectedSpDaysRange');
+                }
 
             }
 
 
-            /* Валидация форм */
-            {
-                // Валидация формы ввода даты создания табеля
-                {
-                    $formTabelCreate.formValidation({
-                        framework: 'bootstrap',
-                        icon: {
-                            valid: 'glyphicon glyphicon-ok bigger-120',
-                            invalid: 'glyphicon glyphicon-remove bigger-120',
-                            validating: 'glyphicon glyphicon-refresh'
-                        },
-                        fields: {
-                            tabelDateCreate: {
-                                validators: {
-                                    notEmpty: {
-                                        message: 'Поле обязательно для заполнения'
-                                    }
-                                }
-                            }
-                        },
-                        onSuccess: function(e) {
-                            createTabel()
-                                .always(function (result) {
 
-                                    $widgetTabelCreate.trigger('reloaded.ace.widget'); // Отключаем крутилку
+            /* Загружаем списки */
+            (function() {
 
-                                    $.showUserMessage(
-                                        result,
-                                        'Табель создан!',
-                                        'Табель успешно создан и доступен для загрузки!',
-                                        'Ошибка создания табеля!',
-                                        function(){
-                                            location.reload();
-                                        });
-                                });
-
-
-
-
-                        }
+                // Заполнение элементов списка сотрудников диалогового окна
+                getIdNameList(SERVICE_GET_PERSONS)
+                    .done(function (result){
+                        setSelectOptions($selSpDaysPerson, result);
                     });
-                }
 
 
-            }
+
+
+            })();
 
 
             /* Настройка элементов страницы */
             {
-                // Настраиваем datepicker-ы
+
                 $('.year-month').datetimepicker({
                     locale: 'ru',
                     format: 'YYYY MMMM',
+                    allowInputToggle: true,
                     showTodayButton: true,
                     tooltips: {
                         today: 'Текущий месяц'
                     }
                 });
 
-                // Ревалидация поля даты после обновления значения в дейтпикере
-                $('#tabel-create-dtp').datetimepicker().on('dp.change', function (e) {
-                    $formTabelCreate.formValidation('revalidateField', 'tabelDateCreate');
+
+                $dtpSpDaysRange.datepicker({
+                    language: 'ru',
+                    autoclose: true,
+                    todayBtn: true,
+                    todayHighlight: true
                 });
+
 
                 // Обновление списка особенных дней после изменения даты
                 $dtpSpecialDays.datetimepicker().on('dp.change', function (e) {
                     getSpecialDays()
                         .done(function (result) {
                             $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
-                            fillTableSpecialDays(result);
+                            spDaysTableCreate(result);
                         });
 
                 });
                 // Устанавливаем текущую дату в дейтпикер (обязательно после обработчика события, иначе первый раз не сработает)
                 $dtpSpecialDays.data('DateTimePicker').date(new Date());
+
+
+                // При показе модального окна modalSpDaysAdd настраиваем его элементы, в зависимости от spDaysId
+                $modalSpDaysAdd.on('shown.bs.modal', function (e) {
+                    var spDays = $modalSpDaysAdd.data('spDays');
+                    // Заполнение элементов списка обозначений табеля диалогового окна с одновременным выделением нужного элемента
+                    getIdNameList(SERVICE_GET_TABELNOTATIONS)
+                        .done(function (result){
+                            setSelectOptions($selSpDaysKod, result, spDays.kodId);
+                            $selSpDaysKod.chosen().trigger('chosen:updated');
+                        });
+
+                    $selSpDaysPerson.chosen();
+                    if (spDays.id < 0) { // Добавление
+                        $selSpDaysPerson.attr("disabled", false);
+                        $selSpDaysPerson.find('option:first-child').prop('selected', true).end().trigger('chosen:updated');
+                        $dtpSpDaysRange.find('input[type="text"]').each(function() {
+                            $dtpSpDaysRange.find('input[type="text"]').off('change');
+                            $(this).datepicker('clearDates');
+                            $dtpSpDaysRange.find('input[type="text"]').on('change', dtpSpDaysRangeInputChange);
+                        });
+                    } else { // Редактирование
+                        $selSpDaysPerson.attr("disabled", true);
+                        $selSpDaysPerson.val(spDays.personId).trigger('chosen:updated');
+                        $dtpSpDaysRange.find('input[name="start"]').datepicker('update', new Date(spDays.dateBegin));
+                        $dtpSpDaysRange.find('input[name="end"]').datepicker('update', new Date(spDays.dateEnd));
+                    }
+
+                });
+
 
                 // Widget - контейнер
                 {
@@ -275,7 +374,7 @@
 
 
                         // reset saved positions and states
-                        $('#reset-widgets').on('click', function () {
+                        $('#reset-widgets').off('click').on('click', function () {
                             ace.data.remove('uio', 'widget-state');
                             ace.data.remove('uio', 'widget-order');
                             document.location.reload();
@@ -288,9 +387,108 @@
             }
 
 
+            /* Валидация форм */
+            {
+
+                // Валидация формы ввода даты создания табеля
+                {
+                    $formTabelCreate.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            tabelDateCreate: {
+                                validators: {
+                                    notEmpty: {}
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            createTabel()
+                                .always(function (result) {
+
+                                    $widgetTabelCreate.trigger('reloaded.ace.widget'); // Отключаем крутилку
+
+                                    $.showUserMessage(
+                                        result,
+                                        'Табель создан!',
+                                        'Табель успешно создан и доступен для загрузки!',
+                                        'Ошибка создания табеля!',
+                                        function(){
+                                            location.reload();
+                                        });
+                                });
+                        }
+                    });
+
+                    // Ревалидация поля даты после обновления значения в дейтпикере
+                    $('#tabel-create-dtp').datetimepicker().on('dp.change', function (e) {
+                        $formTabelCreate.formValidation('revalidateField', 'tabelDateCreate');
+                    });
+                }
+
+
+                // Валидация формы ввода особенных дней табеля
+                {
+                    $formSpDaysAdd.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            selectedSpDaysRange:    {
+                                excluded: false,
+                                validators: {
+                                    notEmpty: {},
+                                    date: {
+                                        format: 'DD.MM.YYYY',
+                                        message: 'Дата указана неверно'
+                                    }
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            spDaysAddOrUpdate()
+                                .done(function (result) {
+                                    var id = $modalSpDaysAdd.data('spDays').id;
+                                    if (id > 0) {
+                                        spDaysTableUpdateRowData(result);
+                                    } else {
+                                        spDaysTableAddRow(result);
+                                    }
+                                })
+                                .fail(function (result) {
+                                    $.showErrorMessage(result, 'Ошибка добавления особенных дней!');
+                                })
+                                .always(function (result) {
+                                    $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                                });
+                        }
+                    });
+
+                    // При "ручном" изменении поля загоняем введенный текст в проверяемое скрытое поле и делаем ревалидацию
+                    $dtpSpDaysRange.find('input[type="text"]').off('change').on('change', dtpSpDaysRangeInputChange);
+
+                    // Сброс информации о валидации когда окно уже скрылось
+                    $modalSpDaysAdd.on('hidden.bs.modal', function (e) {
+                        $formSpDaysAdd.data('formValidation').resetForm(true);
+                    });
+
+                }
+
+            }
+
+
+
             /* ****************************************************************************************************** */
         });
-
         /*]]>*/
     </script>
 </div></body></html>

@@ -20,6 +20,7 @@ public final class Url {
 
     // API
     public static final String API                      = "/api";
+    public static final String API_SERVICE              = "/api/service";
 
     // Фото сотрудника (API)
     public static final String PERSON_PHOTO             = "/getphoto/{id}";
@@ -30,7 +31,8 @@ public final class Url {
     // Табель
     public static final String TABEL_PAGE               = "/tabel";
     public static final String TABEL                    = "/tabel/{year}/{month}";
-    public static final String TABEL_SPECIAL_DAYS       = "/tabel/spdays/{year}/{month}";
+    public static final String TABEL_SPDAYS             = "/tabel/spdays";
+    public static final String TABEL_NOTATION           = "/tabelnotations";
 
 
 
@@ -38,6 +40,8 @@ public final class Url {
     // Настройки пользователя
     public static final String USERSETTINGS_PAGE        = "/usersettings";
     public static final String USERPROFILE_PAGE         = "/userprofile";
+
+
 
     // Справочники
 

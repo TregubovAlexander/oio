@@ -3,6 +3,8 @@ package ru.elsu.oio.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+import ru.elsu.oio.dto.PasportDto;
+import ru.elsu.oio.utils.Util;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -31,5 +33,16 @@ public class Pasport {
     @Temporal(TemporalType.DATE)
     private Date dat;
     private String org;
+
+    // Перегнать в DTO
+    public PasportDto toDto() {
+        PasportDto dto = new PasportDto();
+        dto.setPersonId(this.id);
+        dto.setSer(this.ser);
+        dto.setNum(this.num);
+        dto.setDat(Util.dateToStr(this.dat));
+        dto.setOrg(this.org);
+        return dto;
+    }
 
 }

@@ -48,8 +48,8 @@ public class TabelController {
 
         aceAdmin.setPageInfo(getMessage("ui.section.tabel.name"), getMessage("organization.name"));
         aceAdmin.getPage().setInline_scripts(true);
-        aceAdmin.getPage().setStyles(Arrays.asList(StyleMapping.DATETIMEPICKER, StyleMapping.SWEETALERT2, StyleMapping.JQUERY_UI));
-        aceAdmin.getPage().setScripts(Arrays.asList(JQUERY_UI1, JQUERY_UI2, MOMENT, DATETIMEPICKER, SWEETALERT2, FORMVALIDATION));
+        aceAdmin.getPage().setStyles(Arrays.asList(StyleMapping.DATETIMEPICKER, StyleMapping.DATEPICKER, StyleMapping.SWEETALERT2, StyleMapping.JQUERY_UI, StyleMapping.CHOSEN));
+        aceAdmin.getPage().setScripts(Arrays.asList(JQUERY_UI1, JQUERY_UI2, MOMENT, DATETIMEPICKER, DATEPICKER, SWEETALERT2, FORMVALIDATION, CHOSEN));
         model.addAttribute("aceadmin",aceAdmin);
 
         // Список файлов с табелем

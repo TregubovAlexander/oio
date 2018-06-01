@@ -18,7 +18,7 @@ public class SprServiceImpl implements SprService {
     @Autowired
     SprTabelNotationDao sprTabelNotationDao;
 
-    //region SprDol
+    //region === SprDol =========================================================================================================
 
     @Override
     public SprDol getDolById(Long id) {
@@ -42,7 +42,7 @@ public class SprServiceImpl implements SprService {
 
     //endregion
 
-    //region SprTabelNotation
+    //region === SprTabelNotation ===============================================================================================
 
     @Override
     public SprTabelNotation getTabelNotationById(Long id) {

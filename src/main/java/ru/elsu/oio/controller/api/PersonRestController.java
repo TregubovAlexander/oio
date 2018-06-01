@@ -58,14 +58,14 @@ public class PersonRestController {
         List<Person> personList = personService.getAllInitialized();
         List<PersonDto> personDtoList = new ArrayList<>();
         for (Person p : personList) {
-            personDtoList.add(new PersonDto(p));
+            personDtoList.add(p.toDto());
         }
         return personDtoList;
     }
     //endregion
 
 
-    //region === Инормация о конкретном сотруднике с идентификатором id =========================================================
+    //region === GET - Инормация о конкретном сотруднике с идентификатором id ===================================================
     @GetMapping(Url.PERSON)
     public ResponseEntity<Object> getPersonById(@PathVariable Long id) {
 
@@ -75,7 +75,7 @@ public class PersonRestController {
             throw new ResourceNotFoundException("Сотрудник с ID " + id + " не найден");
         }
 
-        return new ResponseEntity<Object>(new PersonDto(person), HttpStatus.OK);
+        return new ResponseEntity<Object>(person.toDto(), HttpStatus.OK);
 
     }
     //endregion
@@ -96,7 +96,7 @@ public class PersonRestController {
     //endregion
 
 
-    //region === Добавление сотрудника ==========================================================================================
+    //region === POST - Добавление сотрудника ===================================================================================
     @PostMapping(Url.PERSONS)
     public ResponseEntity<?> createPerson(@Valid @RequestBody PersonDto personDto) {
         ErrorDetail errorDetail = null;
@@ -113,7 +113,7 @@ public class PersonRestController {
             person = personService.createPerson(personDto);
         } catch (RuntimeException e) {
             errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", e.getMessage());
-            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
         }
 
         // Если все нормально - Возвращаем HttpStatus.CREATED и передаем URI вновь созданного ресурса через HTTP-заголовок Location
@@ -125,7 +125,7 @@ public class PersonRestController {
     //endregion
 
 
-    //region === Обновление (сохранение) сотрудника с идентификатором id ========================================================
+    //region === PUT - Обновление (сохранение) сотрудника с идентификатором id ==================================================
     @PutMapping(Url.PERSON)
     public ResponseEntity<?> updatePerson(@PathVariable Long id, @Valid @RequestBody PersonDto personDto) {
         ErrorDetail errorDetail = null;
@@ -135,7 +135,7 @@ public class PersonRestController {
         if (person == null) {
             // Возвращаем ошибку, если ID указан не верно
             errorDetail = new ErrorDetail(HttpStatus.NOT_FOUND, "Сохранение не удалось", "Сотрудник с ID=" + id + " не найден в базе данных");
-            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }
 
         // Обновляем
@@ -145,7 +145,7 @@ public class PersonRestController {
         } catch (RuntimeException ex){
             String err = ex.getMessage();
             errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", err);
-            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
@@ -496,7 +496,7 @@ public class PersonRestController {
     //endregion
 
 
-    //region === Удаление сотрудника ============================================================================================
+    //region === DELETE - Удаление сотрудника ===================================================================================
     /**
      * Удаление сотрудника. Сотрудник не удаляется из БД, а помечается как уволенный (uvolen=1).
      *
@@ -516,7 +516,7 @@ public class PersonRestController {
                     "Некорректный параметр",
                     "Дата увольнения не указана или указана некорректно"
             );
-            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }//endregion
 
         //region Получаем сотрудника по id
@@ -527,7 +527,7 @@ public class PersonRestController {
                     "ID сотрудника указан неверно",
                     "Сотрудник с ID= " + id + " не найден"
             );
-            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }//endregion
 
         //region Проверяем, что дата увольнения не меньше даты приема + 1 день
@@ -538,7 +538,7 @@ public class PersonRestController {
                     "Некорректный параметр",
                     "Дата увольнения должна быть больше даты принятия (" + Util.dateToStr(datPrin) + ")"
             );
-            return new ResponseEntity<>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }
         //endregion
 

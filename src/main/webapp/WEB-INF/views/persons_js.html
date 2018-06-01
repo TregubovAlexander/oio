@@ -22,13 +22,13 @@
                     // Спрашиваем у пользователя, точно ли нужно удалять
                     swal({
                         title: "Внимание!",
-                        text: "Вы действительно хотите удалить сотрудника?",
+                        text: "Вы действительно хотите уволить сотрудника?",
                         type: "warning",
                         timer: 100000,
                         background:"#fcf8e3",
                         allowOutsideClick: false,
                         buttonsStyling: false,
-                        confirmButtonText: "Удалить",
+                        confirmButtonText: "Уволить",
                         confirmButtonClass: "btn btn-lg btn-warning",
                         showCancelButton: true,
                         focusCancel: true,
@@ -108,6 +108,7 @@
 
             /* Валидация форм */
             {
+
                 // Валидация формы добавления сотрудника
                 {
                     // IMPORTANT: on('init.field.fv') must be declared before calling .formValidation(...)
@@ -216,6 +217,7 @@
                     });
 
                 }
+
 
                 // Валидация формы ввода даты увольнения
                 {

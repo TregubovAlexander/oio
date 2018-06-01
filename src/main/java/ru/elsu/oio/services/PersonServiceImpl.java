@@ -42,7 +42,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public boolean personExists(PersonDto personDto) {
-        return (Person)personDao.get(
+        return personDao.get(
                 personDto.getSurname(),
                 personDto.getName(),
                 personDto.getPatronymic(),

@@ -28,17 +28,4 @@ public class PostDto {
     @NotNull
     private Boolean active;
 
-    public PostDto(Post post) {
-        if (post == null) return;
-        this.id = post.getId();
-        this.dolId = post.getDol().getId();
-        this.dolName = post.getDol().getName();
-        this.dateBegin = Util.dateToStr(post.getDateBegin());
-        this.dateEnd = Util.dateToStr(post.getDateEnd());
-        this.stavka = post.getStavka();
-        this.active = post.getActive();
-    }
-
-
-
 }

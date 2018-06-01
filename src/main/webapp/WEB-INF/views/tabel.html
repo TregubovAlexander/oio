@@ -124,7 +124,6 @@
 
                         <div class="space-12"></div>
 
-
                         <!-- Редактирование особенных дней -->
                         <div class="widget-box widget-color-blue2" id="widget-specialdays-edit">
                             <div class="widget-header">
@@ -157,13 +156,13 @@
                                         </div>
                                     </form><!-- Выбор года/месяца -->
 
-                                    <table id="specialdays-table" class="table table-striped table-bordered table-hover">
+                                    <table id="specialdays-table" class="table table-striped table-bordered table-hover table-action">
                                         <thead>
                                         <tr class="no-padding">
                                             <th class="width-30">ФИО</th>
                                             <th class="width-30">Код</th>
-                                            <th class="width-10">Дата начала</th>
-                                            <th class="width-10">Дата окончания</th>
+                                            <th class="width-10 align-center">Дата начала</th>
+                                            <th class="width-10 align-center">Дата окончания</th>
                                             <th class="width-10"></th>
                                         </tr>
                                         </thead>
@@ -172,16 +171,16 @@
 
                                         <tr>
                                             <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
+                                            <td class="text-limit-30"></td>
+                                            <td class="align-center"></td>
+                                            <td class="align-center"></td>
 
                                             <td>
                                                 <div class="hidden-sm hidden-xs action-buttons">
-                                                    <a class="green" href="#" th:title="#{control.edit}">
+                                                    <a class="green" href="#edit" th:title="#{control.edit}">
                                                         <i class="ace-icon fa fa-pencil bigger-130"></i>
                                                     </a>
-                                                    <a class="red person-delete" href="#" th:title="#{control.delete}">
+                                                    <a class="red person-delete" href="#delete" th:title="#{control.delete}">
                                                         <i class="ace-icon fa fa-trash-o bigger-130"></i>
                                                     </a>
                                                 </div>
@@ -192,12 +191,12 @@
                                                         </button>
                                                         <ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-menu-right dropdown-caret dropdown-close">
                                                             <li>
-                                                                <a href="#" class="tooltip-success" data-rel="tooltip" th:title="#{control.edit}">
+                                                                <a href="#edit" class="tooltip-success" data-rel="tooltip" th:title="#{control.edit}">
                                                                     <span class="green"><i class="ace-icon fa fa-pencil-square-o bigger-120"></i></span>
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a href="#" class="tooltip-error person-delete" data-rel="tooltip" th:title="#{control.delete}">
+                                                                <a href="#delete" class="tooltip-error person-delete" data-rel="tooltip" th:title="#{control.delete}">
                                                                     <span class="red"><i class="ace-icon fa fa-trash-o bigger-120"></i></span>
                                                                 </a>
                                                             </li>
@@ -212,8 +211,14 @@
                                         </tbody>
                                     </table>
 
+                                    <div class="space-2"></div>
 
-
+                                    <div class="clearfix">
+                                        <div class="pull-left">
+                                            <i class="ace-icon fa fa-hand-o-right green bigger-125"></i>
+                                            <a href="#" role="button" class="bigger-110" id="spDaysAdd">Добавить запись</a>
+                                        </div>
+                                    </div>
 
 
 
@@ -228,7 +233,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- /Редактирование праздничных дней -->
+                        <!-- /Редактирование особенных дней -->
 
 
 
@@ -320,7 +325,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- /Редактирование праздничных дней -->
+                        <!-- /Редактирование обозначений табеля -->
 
 
 
@@ -369,6 +374,79 @@
     </div><!-- /Содержимое вкладок -->
 
 
+
+
+
+    <!-- =========================================================================================================== -->
+    <!-- Модальные диалоговые окна - Добавление особенных дней -->
+    <div id="modalSpDaysAdd" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <form class="form-horizontal" id="formSpDaysAdd">
+
+                <input type="hidden" id="spDaysId" value="0">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="blue bigger">Добавление особенных дней табеля</h4>
+                    </div>
+                    <div class="modal-body overflow-visible">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 col-lg-12">
+
+
+                                    <!-- Сотрудник -->
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="spDaysPerson">Сотрудник</label>
+                                        <div class="col-sm-7">
+                                            <select class="width-100 chosen-select" id="spDaysPerson" data-placeholder="Выберите сотрудника ..."></select>
+                                        </div>
+                                    </div><!-- /Сотрудник -->
+                                    <div class="space-2"></div>
+
+                                    <!-- Код особенного дня -->
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="spDaysKod">Код особенного дня</label>
+                                        <div class="col-sm-7">
+                                            <select class="width-100 chosen-select" id="spDaysKod" data-placeholder="Выберите значение из списка ..."></select>
+                                        </div>
+                                    </div><!-- /Код особенного дня -->
+                                    <div class="space-2"></div>
+
+                                    <!-- Диапазон дат -->
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label no-padding-right" for="spDaysRange">Диапазон дат</label>
+                                        <div class="col-sm-7">
+
+                                            <div class="input-daterange input-group" id="spDaysRange">
+                                                <input type="hidden" id="selectedSpDaysRange" name="selectedSpDaysRange" />
+                                                <input type="text" class="input-sm form-control" name="start" />
+                                                <span class="input-group-addon"><i class="fa fa-exchange"></i></span>
+                                                <input type="text" class="input-sm form-control" name="end" />
+                                            </div>
+
+                                        </div>
+                                    </div><!-- /Диапазон дат -->
+                                    <div class="space-2"></div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-primary" type="submit">
+                            <i class="ace-icon fa fa-check"></i>Сохранить
+                        </button>
+                        <button class="btn btn-sm" data-dismiss="modal">
+                            <i class="ace-icon fa fa-remove"></i>Отменить
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div><!-- /#modalSpDaysAdd -->
 
 
 

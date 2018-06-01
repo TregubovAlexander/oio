@@ -3,8 +3,14 @@ package ru.elsu.oio.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Cascade;
+import ru.elsu.oio.dto.ChildrenDto;
+import ru.elsu.oio.dto.PersonDto;
+import ru.elsu.oio.dto.PostDto;
+import ru.elsu.oio.utils.Util;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -104,4 +110,42 @@ public class Person {
     }
 
 
+
+    // Перегнать в DTO
+    public PersonDto toDto() {
+        PersonDto dto = new PersonDto();
+        dto.setId(this.id);
+        dto.setSurname(this.surname);
+        dto.setName(this.name);
+        dto.setPatronymic(this.patronymic);
+        dto.setFullName(this.getFullName());
+        dto.setDr(Util.dateToStr(this.dr));
+        dto.setGender(this.gender);
+        dto.setAddress(this.address.toDto());
+        dto.setPasport(this.pasport.toDto());
+        dto.setHomePhone(this.homePhone);
+        dto.setWorkPhone(this.workPhone);
+        dto.setMobilePhone(this.mobilePhone);
+        dto.setEmail(this.email);
+        dto.setSemPol(this.semPol);
+        List<PostDto> posts = new ArrayList<>();
+        for (Post p : this.postList) {
+            posts.add(p.toDto());
+        }
+        dto.setPosts(posts);
+        dto.setDatPrin(Util.dateToStr(this.datPrin));
+        dto.setTabNo(this.tabNo);
+        dto.setDopsved(this.dopsved);
+        List<ChildrenDto> childrens = new ArrayList<>();
+        for (Children c : this.childrenList) {
+            childrens.add(c.toDto());
+        }
+        dto.setChildrens(childrens);
+        dto.setUvolen(this.uvolen);
+        dto.setDatUvol(Util.dateToStr(this.datUvol));
+        return dto;
+    }
+    
+    
+    
 }

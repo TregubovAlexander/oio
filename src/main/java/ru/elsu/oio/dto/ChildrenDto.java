@@ -15,6 +15,7 @@ import javax.validation.constraints.Size;
 @Getter @Setter
 @NoArgsConstructor
 public class ChildrenDto {
+
     private Long id;
     @NotNull
     @Size(min = 2, max = 30, message = "{Size.personDto.name}")
@@ -37,17 +38,5 @@ public class ChildrenDto {
     private String gender;
     @Pattern(regexp = "^(M{0,3}(D?C{0,3}|C[DM])(L?X{0,3}|X[LC])(V?I{0,3}|I[VX])((?!^)-)?[а-я]{2}\\s\\d{6})|(\\s*)$", flags = {Pattern.Flag.CASE_INSENSITIVE, Pattern.Flag.UNICODE_CASE}, message = "{Pattern.childrenDto.birthSertificate}")
     private String birthSertificate;
-
-    public ChildrenDto(Children children){
-        if (children == null) return;
-        this.id = children.getId();
-        this.surname = children.getSurname();
-        this.name = children.getName();
-        this.patronymic = children.getPatronymic();
-        this.fullName = children.getFullName();
-        this.dr = Util.dateToStr(children.getDr());
-        this.gender = children.getGender();
-        this.birthSertificate = children.getBirthSertificate();
-    }
 
 }

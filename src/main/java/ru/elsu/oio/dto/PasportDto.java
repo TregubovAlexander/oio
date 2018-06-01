@@ -26,14 +26,4 @@ public class PasportDto {
     private String dat;
     @NotNullNotBlank
     private String org;
-
-    // Конструктор из Pasport
-    public PasportDto(Pasport pasport) {
-        if (pasport == null) return;
-        this.personId = pasport.getId();
-        this.ser = pasport.getSer();
-        this.num = pasport.getNum();
-        this.dat = Util.dateToStr(pasport.getDat());
-        this.org = pasport.getOrg();
-    }
 }

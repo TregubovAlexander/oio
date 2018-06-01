@@ -29,17 +29,4 @@ public class AddressDto {
     @NotNullNotBlank
     private String text;
 
-    public AddressDto(Address address){
-        if (address == null) return;
-        this.streetId = address.getStreetId();
-        this.zip = address.getZip();
-        this.region = address.getRegion();
-        this.district = address.getDistrict();
-        this.city = address.getCity();
-        this.street = address.getStreet();
-        this.building = address.getBuilding();
-        this.kvartira = address.getKvartira();
-        this.text = address.getText();
-    }
-
 }

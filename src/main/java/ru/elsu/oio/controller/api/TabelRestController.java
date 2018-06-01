@@ -9,17 +9,18 @@ import org.springframework.http.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import ru.elsu.oio.Url;
+import ru.elsu.oio.controller.exeption.IncorrectUserDataException;
 import ru.elsu.oio.dto.ErrorDetail;
 import ru.elsu.oio.entity.*;
 import ru.elsu.oio.services.PersonService;
 import ru.elsu.oio.services.SprService;
 import ru.elsu.oio.services.TabelService;
 import ru.elsu.oio.tabel.PersonForTabel;
-import ru.elsu.oio.tabel.Tabel;
-import ru.elsu.oio.dto.TabelSpecialDaysDto;
+import ru.elsu.oio.dto.TabelSpDaysDto;
 import ru.elsu.oio.utils.ExcelUtil;
 import ru.elsu.oio.utils.Util;
 
+import javax.validation.Valid;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,8 +44,8 @@ public class TabelRestController {
     @Value("${files.path}")
     private String filesPath;
 
-    private List<TabelSpecialDays> tabelSpecialDays = null;     // Список особенных дней
-    private List<TabelHolidays> tabelHolidays = null;           // Список праздничных дней
+    private List<TabelSpDays> tabelSpDaysList = null;       // Список особенных дней
+    private List<TabelHolidays> tabelHolidaysList = null;   // Список праздничных дней
 
 
 
@@ -125,15 +126,15 @@ public class TabelRestController {
         } catch (FileNotFoundException e) { //TODO: подумать над исключениями - лучше генерировать самостоятельно разные исключения и передавать наверх в этото метод (из createTabel)
             String err = e.getMessage();
             ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка FileNotFoundException", err);
-            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
         } catch (IOException e) {
             String err = e.getMessage();
             ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка IOException", err);
-            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
         } catch (Exception e) { // Все остальные исключения (например, NullPointerException когда не найдена именованная ячейка и пр.)
             String err = e.getMessage();
             ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка Exception", err);
-            return new ResponseEntity<ErrorDetail>(errorDetail, new HttpHeaders(), errorDetail.getStatus());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
@@ -304,8 +305,8 @@ public class TabelRestController {
         //endregion
 
         //region Получаем список особенных дней и список праздников
-        tabelSpecialDays = tabelService.getTabelDays(tabelFirstDate, tabelLastDate);
-        tabelHolidays = tabelService.getTabelHolidays(year, month);
+        tabelSpDaysList = tabelService.getTabelSpDays(tabelFirstDate, tabelLastDate);
+        tabelHolidaysList = tabelService.getTabelHolidays(year, month);
         //endregion
 
         // Константы
@@ -344,7 +345,7 @@ public class TabelRestController {
             int dayBegin, dayEnd;
             Date db, de;
 
-            for (TabelSpecialDays td: tabelSpecialDays) {
+            for (TabelSpDays td: tabelSpDaysList) {
                 if (pt.getId() != td.getPerson().getId()) continue;
 
                 db = td.getDateBegin();
@@ -572,25 +573,12 @@ public class TabelRestController {
 
 
     //region === GET - Список особенных дней табеля за указанные год/месяц ======================================================
-    @GetMapping(Url.TABEL_SPECIAL_DAYS)
-    public List<TabelSpecialDaysDto> getTabelSpecialDays(@PathVariable int year, @PathVariable int month) {
-
-        List<TabelSpecialDays> tsDays = tabelService.getTabelDays(year, month);
-        List<TabelSpecialDaysDto> tsDaysDtoList = new ArrayList<>();
-
-        for (TabelSpecialDays tsDay : tsDays) {
-            TabelSpecialDaysDto tsDayDto = new TabelSpecialDaysDto();
-
-            tsDayDto.setId(tsDay.getId());
-            tsDayDto.setPersonId(tsDay.getPerson().getId());
-            tsDayDto.setFullName(tsDay.getPerson().getFullName());
-            tsDayDto.setDateBegin(Util.dateToStr(tsDay.getDateBegin()));
-            tsDayDto.setDateEnd(Util.dateToStr(tsDay.getDateEnd()));
-            tsDayDto.setKodId(tsDay.getKod().getId());
-            tsDayDto.setKod(tsDay.getKod().getKod());
-            tsDayDto.setKodName(tsDay.getKod().getName());
-
-            tsDaysDtoList.add(tsDayDto);
+    @GetMapping(Url.TABEL_SPDAYS + "/{year}/{month}")
+    public List<TabelSpDaysDto> getTabelSpecialDays(@PathVariable int year, @PathVariable int month) {
+        List<TabelSpDays> tsDays = tabelService.getTabelSpDays(year, month);
+        List<TabelSpDaysDto> tsDaysDtoList = new ArrayList<>();
+        for (TabelSpDays spDays : tsDays) {
+            tsDaysDtoList.add(spDays.toDto());
         }
 
         return tsDaysDtoList;
@@ -598,9 +586,88 @@ public class TabelRestController {
     //endregion
 
 
+    //region === POST - Добавление одной записи особенных дней ==================================================================
+    @PostMapping(Url.TABEL_SPDAYS)
+    public ResponseEntity<?> createSpDays(@Valid @RequestBody TabelSpDaysDto dto) {
+        TabelSpDays tabelSpDays = null;
+        try {
+            // Проверяем, что сотрудник существуют
+            Person person = personService.getById(dto.getPersonId());
+            if (person == null) {
+                throw new IncorrectUserDataException("Сотрудник с идентификатором " + dto.getPersonId() + " не найден");
+            }
+            // Проверяем, что код табеля существует и активен
+            getAndCheckTabelNotation(dto.getKodId());
+            // Проверяем, что диапазон дат не пересекается
+            checkDateRangeIntersects(person, Util.strToDate(dto.getDateBegin()), Util.strToDate(dto.getDateEnd()));
+
+            tabelSpDays = tabelService.createTabelSpDays(dto);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        // Если все нормально, отдаем обратно вновь созданный объект
+        return new ResponseEntity<TabelSpDaysDto>(tabelSpDays.toDto(), HttpStatus.CREATED);
+    }
+    //endregion
+
+
+    //region === PUT - Обновление одной записи особенных дней ===================================================================
+    @PutMapping(Url.TABEL_SPDAYS + "/{id}")
+    public ResponseEntity<?> updateSpDays(@PathVariable Long id, @Valid @RequestBody TabelSpDaysDto dto) {
+        TabelSpDays tabelSpDays = null;
+        try {
+            // Сначала проверяем, что особенные дни с присланным ID существуют
+            tabelSpDays = getAndCheckTabelSpDays(id);
+
+            // При обновлении сотрудника менять НЕЛЬЗЯ - поэтому просто игнорируем поле dto.personId
+
+            // Проверяем, что код табеля существует и активен
+            SprTabelNotation tn = getAndCheckTabelNotation(dto.getKodId());
+
+            // Проверяем, что диапазон дат не пересекается
+            checkDateRangeIntersects(tabelSpDays.getPerson(), Util.strToDate(dto.getDateBegin()), Util.strToDate(dto.getDateEnd()), id);
+
+            // Обновляем
+            tabelSpDays.setKod(tn);
+            tabelSpDays.setDateBegin(Util.strToDate(dto.getDateBegin()));
+            tabelSpDays.setDateEnd(Util.strToDate(dto.getDateEnd()));
+            tabelService.saveTabelSpDays(tabelSpDays);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка обновления данных", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        // Если все нормально, отдаем измененный объект обратно
+        return new ResponseEntity<TabelSpDaysDto>(tabelSpDays.toDto(), HttpStatus.OK);
+    }
+    //endregion
+
+
+    //region === DELETE - Удаление одной записи особенных дней ==================================================================
+    @DeleteMapping(Url.TABEL_SPDAYS + "/{id}")
+    public ResponseEntity<?> deleteSpDays(@PathVariable Long id) {
+        try {
+            // Сначала проверяем, что особенные дни с присланным ID существуют
+            TabelSpDays tabelSpDays = getAndCheckTabelSpDays(id);
+
+            tabelService.deleteTabelSpDays(tabelSpDays);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка удаления", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    //endregion
 
 
 
+
+
+
+    //region === ВСПОМОГАТЕЛЬНЫЕ ПРИВАТНЫЕ МЕТОДЫ ===============================================================================
 
 
     /**
@@ -612,6 +679,7 @@ public class TabelRestController {
         return (gc.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || gc.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY);
     }
 
+
     /**
      * Проверяет является ли день праздничным днем
      * @param gc GregorianCalendar с датой проверяемого дня
@@ -619,7 +687,7 @@ public class TabelRestController {
      */
     private final TabelHolidays getHoliday(Calendar gc) {
         int day = gc.get(Calendar.DAY_OF_MONTH);
-        for (TabelHolidays th : tabelHolidays) {
+        for (TabelHolidays th : tabelHolidaysList) {
             if (day == th.getDay()) {
                 return th;
             }
@@ -627,5 +695,86 @@ public class TabelRestController {
         return null;
     }
 
+
+    /**
+     * Получает код особенного дня табеля из справочника с одновременной проверкой, что он там существует и активен
+      * @param id   идентификатор кода особенного дня табеля
+     * @return экземпляр класса SprTabelNotation (код особенного дня)
+     * @throws IncorrectUserDataException
+     */
+    private final SprTabelNotation getAndCheckTabelNotation(Long id) throws IncorrectUserDataException{
+        SprTabelNotation tn = sprService.getTabelNotationById(id);
+        if (tn == null) {
+            throw new IncorrectUserDataException("Особенный день задан некорректно - отсутствует в справочнике");
+        }
+        if (!tn.getActive()) {
+            throw new IncorrectUserDataException("Особенный день задан некорректно - помечен в справочнике как неиспользуемый");
+        }
+        return tn;
+    }
+
+
+    /**
+     * Проверяем, что присланный диапазон дат не пересекается с существующими в базе данных
+     * @param person сотрудник, по которому осуществляется проверка
+     * @param dateBegin дата начала диапазона
+     * @param dateEnd дата конца диапазона
+     * @throws IncorrectUserDataException
+     */
+    private final void checkDateRangeIntersects(Person person, Date dateBegin, Date dateEnd) throws IncorrectUserDataException {
+        List<TabelSpDays> spDaysList = tabelService.getTabelSpDays(person, dateBegin, dateEnd);
+
+        if (spDaysList.size() > 0) {
+            TabelSpDays spDays = spDaysList.get(0);
+            String s = spDays.getKod().getKod() + " - c " + Util.dateToStr(spDays.getDateBegin()) + " по " + Util.dateToStr(spDays.getDateEnd());
+            throw new IncorrectUserDataException("Заданный диапазон пересекается с уже существующим: <br> " + s);
+        }
+
+    }
+
+
+    /**
+     * Проверяем, что присланный диапазон дат не пересекается с существующими в базе данных
+     * @param person сотрудник, по которому осуществляется проверка
+     * @param dateBegin дата начала диапазона
+     * @param dateEnd дата конца диапазона
+     * @throws IncorrectUserDataException
+     */
+    private final void checkDateRangeIntersects(Person person, Date dateBegin, Date dateEnd, Long id) throws IncorrectUserDataException {
+        List<TabelSpDays> spDaysList = tabelService.getTabelSpDays(person, dateBegin, dateEnd);
+
+        // Удаляем из полученного списка редактируемый объект (с ID = id)
+        Iterator<TabelSpDays> i = spDaysList.iterator();
+        while (i.hasNext()) {
+            TabelSpDays tsd = i.next();
+            if (tsd.getId() == id) i.remove();
+        }
+
+        if (spDaysList.size() > 0) {
+            TabelSpDays spDays = spDaysList.get(0);
+            String s = spDays.getKod().getKod() + " - c " + Util.dateToStr(spDays.getDateBegin()) + " по " + Util.dateToStr(spDays.getDateEnd());
+            throw new IncorrectUserDataException("Заданный диапазон пересекается с уже существующим: <br> " + s);
+        }
+
+
+    }
+
+
+    /**
+     * Получаем особенные дни по идентификатору ID, с одновременной проверкой, что они существуют в БД
+     * @param id
+     * @return
+     * @throws IncorrectUserDataException
+     */
+    private final TabelSpDays getAndCheckTabelSpDays(Long id) throws IncorrectUserDataException {
+        TabelSpDays tabelSpDays = tabelService.getTabelSpDays(id);
+        if (tabelSpDays == null) {
+            throw new IncorrectUserDataException("Особенные дни с ID = " + id + " не найдены в БД !");
+        }
+        return tabelSpDays;
+    }
+
+
+    //endregion
 
 }

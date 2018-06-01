@@ -59,7 +59,6 @@ public class RestExceptionHandler {
     }//endregion
 
 
-
     //region === Обработка исключения MethodArgumentNotValidException ===========================================================
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationError(Principal principal, MethodArgumentNotValidException exception, HttpServletRequest request) {
@@ -82,10 +81,9 @@ public class RestExceptionHandler {
     }//endregion
 
 
-
     //region === Обработка ВСЕХ исключений ======================================================================================
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleAllException(Principal principal, ResourceNotFoundException exception, HttpServletRequest request) {
+    public ResponseEntity<?> handleAllException(Principal principal, Exception exception, HttpServletRequest request) {
         String userName = "NULL";
         if (principal != null) userName = principal.getName();
         logger.error("Запрос: " + getFullURL(request) + " пользователя " + userName + " вызвал исключение " + exception);

@@ -2,6 +2,10 @@ package ru.elsu.oio.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.elsu.oio.dao.ChildrenDao;
+import ru.elsu.oio.dto.ChildrenDto;
+import ru.elsu.oio.utils.Util;
+
 import javax.persistence.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -57,4 +61,18 @@ public class Children {
         return surname + " " + name + " " + patronymic;
     }
 
+
+    // Перегнать в DTO
+    public ChildrenDto toDto() {
+        ChildrenDto dto = new ChildrenDto();
+        dto.setId(this.id);
+        dto.setSurname(this.surname);
+        dto.setName(this.name);
+        dto.setPatronymic(this.patronymic);
+        dto.setFullName(this.getFullName());
+        dto.setDr(Util.dateToStr(this.dr));
+        dto.setGender(this.gender);
+        dto.setBirthSertificate(this.birthSertificate);
+        return dto;
+    }
 }

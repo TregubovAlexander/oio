@@ -105,7 +105,14 @@ form.compact-10 .form-group {
     padding-top: 7px;
 }
 
-#persons-table .action-buttons {
+.table-action .action-buttons {
     text-align: center;
     padding-top: 0;
+}
+
+.text-limit-30 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 30ch;
 }
