@@ -40,7 +40,7 @@ public class Address {
     // Перегнать в DTO
     public AddressDto toDto() {
         AddressDto dto = new AddressDto();
-        dto.setStreet(this.streetId);
+        dto.setStreetId(this.streetId);
         dto.setZip(this.zip);
         dto.setRegion(this.region);
         dto.setDistrict(this.district);

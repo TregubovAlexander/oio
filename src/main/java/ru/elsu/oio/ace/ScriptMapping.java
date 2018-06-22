@@ -65,6 +65,9 @@ public class ScriptMapping {
     public static final String WIZARD                   = "components/fuelux/js/wizard.js";
     public static final String TREE                     = "components/_mod/fuelux/tree.js";
     public static final String EASY_PIE_CHART           = "components/_mod/easypiechart/jquery.easypiechart.js";
+
     public static final String KLADR                    = "components/kladrapi/jquery.kladr.min.js";
     public static final String YANDEX_MAPS              = "http://api-maps.yandex.ru/2.1/?lang=ru_RU";
+    public static final String CALENDAR                 = "components/bootstrap-year-calendar/bootstrap-year-calendar.js";
+
 }

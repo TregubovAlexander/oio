@@ -21,12 +21,34 @@ public class HibernateTabelHolidaysDao implements TabelHolidaysDao {
     }
 
     @Override
+    public TabelHolidays getById(Long id) {
+        return (TabelHolidays) getCurrentSession().get(TabelHolidays.class, id);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<TabelHolidays> get(int year) {
+        return (List<TabelHolidays>) getCurrentSession().getNamedQuery("TabelHolidays.getByYear")
+                .setParameter("year", year)
+                .list();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public List<TabelHolidays> get(int year, int month) {
-        List<TabelHolidays> tabelHolidays = getCurrentSession().getNamedQuery("TabelHolidays.get")
+        return (List<TabelHolidays>) getCurrentSession().getNamedQuery("TabelHolidays.getByYearMonth")
                 .setParameter("year", year)
                 .setParameter("month", month)
                 .list();
-        return tabelHolidays;
+    }
+
+    @Override
+    public TabelHolidays get(int year, int month, int day) {
+        return (TabelHolidays) getCurrentSession().getNamedQuery("TabelHolidays.getByYearMonthDay")
+                .setParameter("year", year)
+                .setParameter("month", month)
+                .setParameter("day", day)
+                .uniqueResult();
     }
 
     @Override

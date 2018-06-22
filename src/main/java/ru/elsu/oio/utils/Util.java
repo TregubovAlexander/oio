@@ -7,7 +7,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.regex.Pattern;
 
 public final class Util {
@@ -15,12 +17,18 @@ public final class Util {
 
     private static final int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
 
+    // Преобразование строки в Calendar
+    public static Calendar strToCalendar(String s) throws RuntimeException {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(strToDate(s));
+        return calendar;
+    }
+
     // Преобразование строки в дату
     public static Date strToDate(String s) throws RuntimeException {
         return strToDate(s, "");
     }
 
-    // Преобразование строки в дату
     public static Date strToDate(String s, String f) throws RuntimeException {
         SimpleDateFormat format = new SimpleDateFormat();
         if (f == "DT") {
@@ -37,6 +45,7 @@ public final class Util {
         return d;
     }
 
+    // Преобразование даты в строку
     public static String dateToStr(Date d) {
         return dateToStr(d,"");
     }
@@ -55,6 +64,14 @@ public final class Util {
         }
         return format.format(d);
     }
+
+    public static String dateToStr(int year, int month, int day) {
+        Calendar calendar = new GregorianCalendar(year, month - 1, day);
+        return dateToStr(calendar.getTime());
+    }
+
+
+
 
     // Возвращает возраст на текущую дату по дате рождения
     public static int age(Date dr) {

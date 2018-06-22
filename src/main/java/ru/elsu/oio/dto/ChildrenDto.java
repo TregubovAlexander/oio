@@ -18,15 +18,15 @@ public class ChildrenDto {
 
     private Long id;
     @NotNull
-    @Size(min = 2, max = 30, message = "{Size.personDto.name}")
+    @Size(min = 2, max = 30, message = "{validation.stringSize.message}")
     @Pattern(regexp = "^([а-яё]{2,30}([-|\\s]?[а-яё]{2,30})?)|(delete)$", flags = {Pattern.Flag.CASE_INSENSITIVE, Pattern.Flag.UNICODE_CASE}, message = "{Pattern.personDto.surname}")
     private String surname;
     @NotNull
-    @Size(min = 2, max = 30, message = "{Size.personDto.name}")
+    @Size(min = 2, max = 30, message = "{validation.stringSize.message}")
     @Pattern(regexp = "^[а-яё]{2,30}$", flags = {Pattern.Flag.CASE_INSENSITIVE, Pattern.Flag.UNICODE_CASE}, message = "{Pattern.personDto.name}")
     private String name;
     @NotNull
-    @Size(min = 2, max = 30, message = "{Size.personDto.name}")
+    @Size(min = 2, max = 30, message = "{validation.stringSize.message}")
     @Pattern(regexp = "^[а-яё]{2,30}$", flags = {Pattern.Flag.CASE_INSENSITIVE, Pattern.Flag.UNICODE_CASE}, message = "{Pattern.personDto.name}")
     private String patronymic;
     private String fullName;

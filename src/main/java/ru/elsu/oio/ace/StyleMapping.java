@@ -21,5 +21,8 @@ public class StyleMapping {
     public static final String DROPZONE         = "components/dropzone/dist/dropzone.css";
     public static final String DUALLISTBOX      = "components/bootstrap-duallistbox/dist/bootstrap-duallistbox.css";
     public static final String MULTISELECT      = "components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
+
     public static final String KLADR            = "components/kladrapi/jquery.kladr.min.css";
+    public static final String CALENDAR         = "components/bootstrap-year-calendar/bootstrap-year-calendar.css";
+
 }

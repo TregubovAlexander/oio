@@ -11,21 +11,26 @@
                 var $formTabelCreate = $('#formTabelCreate'),
                     $widgetTabelCreate = $('#widget-tabel-create'),
                     $widgetSpecialDaysEdit = $('#widget-specialdays-edit'),
+                    $widgetHolidaysEdit = $('#widget-holidays-edit'),
                     $dtpSpecialDays = $('#speciadays-dtp'),
                     $tableSpDaysBody = $('#specialdays-table').find('tbody'),
                     $templateRowSpDays = $tableSpDaysBody.find('tr:first').clone(),
-                    $modalSpDaysAdd = $('#modalSpDaysAdd'),
-                    $selSpDaysPerson = $('#spDaysPerson', $modalSpDaysAdd),
-                    $selSpDaysKod = $('#spDaysKod', $modalSpDaysAdd),
-                    $formSpDaysAdd = $('#formSpDaysAdd', $modalSpDaysAdd),
-                    $selectedSpDaysRange = $('#selectedSpDaysRange', $formSpDaysAdd),
-                    $dtpSpDaysRange = $('#spDaysRange', $formSpDaysAdd);
+                    $modalSpDaysEdit = $('#modalSpDaysEdit'),
+                    $modalHolidaysEdit = $('#modalHolidaysEdit'),
+                    $selSpDaysPerson = $('#spDaysPerson', $modalSpDaysEdit),
+                    $selSpDaysKod = $('#spDaysKod', $modalSpDaysEdit),
+                    $formSpDaysEdit = $('#formSpDaysEdit', $modalSpDaysEdit),
+                    $formHolidaysEdit = $('#formHolidaysEdit', $modalHolidaysEdit),
+                    $selectedSpDaysRange = $('#selectedSpDaysRange', $formSpDaysEdit),
+                    $dtpSpDaysRange = $('#spDaysRange', $formSpDaysEdit),
+                    $calendar = $('#calendar');
 
 
                 var TABEL_CREATE = /*[[@{/api/tabel/}]]*/ 'http://localhost:8080/oio/api/tabel/2018/04',
                     TABEL_SPDAYS = /*[[@{/api/tabel/spdays/}]]*/ 'http://localhost:8080/oio/api/tabel/spdays/2018/04',
+                    TABEL_HOLIDAYS = /*[[@{/api/tabel/holidays/}]]*/ 'http://localhost:8080/oio/api/tabel/holidays/2018',
                     SERVICE_GET_PERSONS = /*[[@{/api/service/persons}]]*/ 'http://localhost:8080/oio/api/service/persons',
-                    SERVICE_GET_TABELNOTATIONS = /*[[@{/api/service/tabelnotations}]]*/ 'http://localhost:8080/oio/api/service/tabelnotations';
+                    SERVICE_GET_TABELNOTATIONS = /*[[@{/api/service/tabel/notations}]]*/ 'http://localhost:8080/oio/api/service/tabel/notations';
 
                 var newSpDaysId = 0;
 
@@ -47,6 +52,12 @@
                     var month = tabelDate.month() + 1;
 
                     return $.myAjax(TABEL_SPDAYS + year + '/' + month, 'GET', $widgetSpecialDaysEdit);
+                }
+
+
+                // Получение списка праздничных дней за год (выбирается в календаре
+                var getHolidays = function(year) {
+                    return $.myAjax(TABEL_HOLIDAYS + year, 'GET', $widgetHolidaysEdit);
                 }
 
 
@@ -102,9 +113,9 @@
                 // Редактирование строки особенных дней
                 var spDaysRowEdit = function (e) {
                     e.preventDefault();
-                    $modalSpDaysAdd.data('spDays', $(this).parents('tr').data('spDays'));
+                    $modalSpDaysEdit.data('spDays', $(this).parents('tr').data('spDays'));
 
-                    $modalSpDaysAdd.modal();
+                    $modalSpDaysEdit.modal();
                 }
 
 
@@ -156,24 +167,23 @@
                 // Клик по добавлению особенных дней
                 $('#spDaysAdd').off('click').on('click', function (e) {
                     e.preventDefault();
-                    $modalSpDaysAdd.data('spDays', {id: newSpDaysId - 1});
-                    $modalSpDaysAdd.modal();
+                    $modalSpDaysEdit.data('spDays', {id: newSpDaysId - 1});
+                    $modalSpDaysEdit.modal();
                 })
 
 
                 // Добавление или обновление записи об особенных днях (успешная валидация формы)
                 var spDaysAddOrUpdate = function () {
-
                     // Собираем данные с формы
-                    var id = $modalSpDaysAdd.data('spDays').id;
+                    var id = $modalSpDaysEdit.data('spDays').id;
                     var spDays = {id: id};
                     spDays.personId = $selSpDaysPerson.val();
                     spDays.dateBegin = $.formatDate($dtpSpDaysRange.find('input[name="start"]').datepicker('getDate'));
                     spDays.dateEnd = $.formatDate($dtpSpDaysRange.find('input[name="end"]').datepicker('getDate'));
                     spDays.kodId = $selSpDaysKod.val();
+
                     // Закрываем диалог
-                    $modalSpDaysAdd.modal('hide');
-//console.log(JSON.stringify(spDays, null, '\t'));
+                    $modalSpDaysEdit.modal('hide');
 
                     // Формируем запрос
                     var url, type;
@@ -189,11 +199,65 @@
                 }
 
 
+                // Добавление или обновление записи о празднике (submit формы)
+                var holidaysAddOrUpdate = function () {
+                    // Собираем данные с формы
+                    var id = $('#holidayId', modalHolidaysEdit).val();
+                    var holiday = {id: id};
+                    holiday.date = $.trim($('#holidayDate', modalHolidaysEdit).val());
+                    holiday.name = $.trim($('#holidayName', modalHolidaysEdit).val());
+                    holiday.holiday = $('#holidayHoliday', modalHolidaysEdit).prop('checked');
+                    holiday.periodic = $('#holidayPeriodic', modalHolidaysEdit).prop('checked');
+
+                    // Закрываем диалог
+                    $modalHolidaysEdit.modal('hide');
+//console.log(JSON.stringify(holiday, null, '\t'));
+
+                    // Формируем запрос
+                    var url, type;
+                    if (id < 0) {
+                        url = TABEL_HOLIDAYS;
+                        type = 'POST';
+                    } else {
+                        url = TABEL_HOLIDAYS + id;
+                        type = 'PUT';
+                    }
+
+                    return $.myAjax(url, type, $widgetHolidaysEdit, JSON.stringify(holiday));
+                }
+
+
+                // Удаление праздничного дня
+                var holidayDelete = function(id) {
+                    return $.myAjax(TABEL_HOLIDAYS + id, 'DELETE', $widgetHolidaysEdit);
+                }
+
+
                 // Обработчик события OnChange соответствующих инпутов (нужен в виде отдельной функции, т.к. будет отключаться)
                 var dtpSpDaysRangeInputChange = function (e) {
                     $selectedSpDaysRange.val($(this).val());
-                    $formSpDaysAdd.formValidation('revalidateField', 'selectedSpDaysRange');
+                    $formSpDaysEdit.formValidation('revalidateField', 'selectedSpDaysRange');
                 }
+
+
+                // Отправка формы редактирования/добавления праздничных дней
+                $formHolidaysEdit.submit(function(e) {
+                    e.preventDefault();
+                    holidaysAddOrUpdate()
+                        .done(function (result) {
+                            updateEvent(result);
+                        })
+                        .fail(function (result) {
+                            $.showErrorMessage(result, 'Ошибка добавления праздничного дня!');
+                        })
+                        .always(function (result) {
+                            $widgetHolidaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                        });
+                });
+
+
+
+
 
             }
 
@@ -231,6 +295,7 @@
                 $dtpSpDaysRange.datepicker({
                     language: 'ru',
                     autoclose: true,
+                    zIndexOffset: 1040,
                     todayBtn: true,
                     todayHighlight: true
                 });
@@ -250,8 +315,8 @@
 
 
                 // При показе модального окна modalSpDaysAdd настраиваем его элементы, в зависимости от spDaysId
-                $modalSpDaysAdd.on('shown.bs.modal', function (e) {
-                    var spDays = $modalSpDaysAdd.data('spDays');
+                $modalSpDaysEdit.on('shown.bs.modal', function (e) {
+                    var spDays = $modalSpDaysEdit.data('spDays');
                     // Заполнение элементов списка обозначений табеля диалогового окна с одновременным выделением нужного элемента
                     getIdNameList(SERVICE_GET_TABELNOTATIONS)
                         .done(function (result){
@@ -276,6 +341,7 @@
                     }
 
                 });
+
 
 
                 // Widget - контейнер
@@ -384,6 +450,213 @@
                 }
 
 
+
+                // Календарь
+                {
+
+                    var editEvent = function (event) {
+                        $('#holidayId', modalHolidaysEdit).val(event.id);
+                        $('#holidayDate', modalHolidaysEdit).val($.formatDate(event.startDate));
+                        $('#holidayName', modalHolidaysEdit).val(event.name);
+                        $('#holidayHoliday', modalHolidaysEdit).prop('checked', event.holiday === true);
+                        $('#holidayPeriodic', modalHolidaysEdit).prop('checked', event.periodic === true);
+                        $modalHolidaysEdit.modal();
+                    }
+
+                    var deleteEvent = function (event) {
+                        holidayDelete(event.id)
+                            .done(function (result) {
+                                var dataSource = $calendar.data('calendar').getDataSource();
+
+                                for(var i in dataSource) {
+                                    if(dataSource[i].id == event.id) {
+                                        dataSource.splice(i, 1);
+                                        break;
+                                    }
+                                }
+
+                                $calendar.off('renderEnd');
+                                $calendar.data('calendar').setDataSource(dataSource);
+                                $calendar.on('renderEnd', renderEnd);
+                            })
+                            .fail(function (result) {
+                                $.showErrorMessage(result, 'Ошибка удаления!');
+                            })
+                            .always(function (result) {
+                                $widgetHolidaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                            });
+                    }
+
+                    var updateEvent = function (data) {
+//console.log(data);
+                        var event = convertEvent(data);
+                        var dataSource = $calendar.data('calendar').getDataSource();
+
+                        var newEvent = true;
+                        for (var i in dataSource) {
+                            if (dataSource[i].id == event.id) {
+                                dataSource[i].name = event.name;
+                                dataSource[i].startDate = event.startDate;
+                                dataSource[i].endDate = event.endDate;
+                                dataSource[i].holiday = event.holiday;
+                                dataSource[i].periodic = event.periodic;
+                                newEvent = false;
+                                break;
+                            }
+                        }
+
+                        if (newEvent === true) {
+                            dataSource.push(event);
+                        }
+
+                        $calendar.off('renderEnd');
+                        $calendar.data('calendar').setDataSource(dataSource);
+                        $calendar.on('renderEnd', renderEnd);
+                    }
+
+                    var convertEvent = function(data) {
+                        var d = data.date.split('-');
+                        data.startDate = new Date(d[0], d[1] - 1, d[2]);
+                        data.endDate = new Date(d[0], d[1] - 1, d[2]);
+                        delete(data.date);
+                        return data;
+                    }
+
+                    var convertDataSource = function(data) {
+                        for (var i in data) {
+                            convertEvent(data[i]);
+                        }
+                        return data;
+                    }
+
+                    var renderEnd = function (e) {
+                        getHolidays(e.currentYear)
+                            .done(function (result) {
+                                $calendar.off('renderEnd');
+                                $calendar.data('calendar').setDataSource(convertDataSource(result));
+                                $calendar.on('renderEnd', renderEnd);
+                            })
+                            .fail(function (result) {
+                                $.showErrorMessage(result, 'Ошибка загрузки праздничных дней!');
+                            })
+                            .always(function (result) {
+                                $widgetHolidaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                            });
+                    }
+
+
+                    // По-умолчанию выбран текущий год
+                    var currentYear = new Date().getFullYear();
+
+                    var colorHoliday = '#ce6f9e';
+                    var colorWorkday = '#5090c1';
+
+                    $calendar.calendar({
+                        language: 'ru',
+                        style: 'custom',
+                        enableContextMenu: true,
+                        contextMenuItems:[
+                            {
+                                text: 'Изменить',
+                                click: editEvent
+                            },
+                            {
+                                text: 'Удалить',
+                                click: deleteEvent
+                            }
+                        ],
+                        mouseOnDay: function(e) {
+                            if (e.events.length > 0) {
+                                var content = '<div class="event-tooltip-content"><div class="event-name" style="color:';
+                                content += (e.events[0].holiday ? colorHoliday : colorWorkday) + '">' + e.events[0].name + '</div></div>';
+
+                                $(e.element).popover({
+                                    trigger: 'manual',
+                                    container: 'body',
+                                    html:true,
+                                    content: content
+                                });
+
+                                $(e.element).popover('show');
+                            }
+                        },
+                        mouseOutDay: function(e) {
+                            if(e.events.length > 0) {
+                                $(e.element).popover('hide');
+                            }
+                        },
+                        dayContextMenu: function(e) {
+                            if (e.events.length > 0) {
+                                $(e.element).popover('hide');
+                            } else {
+                                editEvent({
+                                    id: -1,
+                                    startDate: e.date,
+                                    endDate: e.date
+                                });
+                            }
+                        },
+                        customDayRenderer: function(element, date) {
+                            // Подсвечиваем выходные дни
+                            if (([0,6].indexOf(date.getDay()) != -1)) {
+                                $(element).css('color', 'red');
+                            }
+                        },
+                        customDataSourceRenderer: function(element, date, events) {
+                            // Подсвечиваем праздники
+                            $(element).css('color', 'white');
+                            //$(element).css('font-weight', 'bold');
+                            $(element).css('border-radius', '15px');
+                            if(events[0].holiday) {
+                                $(element).css('background-color', colorHoliday);
+                            } else {
+                                $(element).css('background-color', colorWorkday);
+                            }
+
+                        },
+                        renderEnd: renderEnd
+                    });
+
+
+
+
+
+
+
+
+
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             }
 
 
@@ -434,7 +707,7 @@
 
                 // Валидация формы ввода особенных дней табеля
                 {
-                    $formSpDaysAdd.formValidation({
+                    $formSpDaysEdit.formValidation({
                         framework: 'bootstrap',
                         icon: {
                             valid: 'glyphicon glyphicon-ok bigger-120',
@@ -457,7 +730,7 @@
                         onSuccess: function(e) {
                             spDaysAddOrUpdate()
                                 .done(function (result) {
-                                    var id = $modalSpDaysAdd.data('spDays').id;
+                                    var id = $modalSpDaysEdit.data('spDays').id;
                                     if (id > 0) {
                                         spDaysTableUpdateRowData(result);
                                     } else {
@@ -477,8 +750,8 @@
                     $dtpSpDaysRange.find('input[type="text"]').off('change').on('change', dtpSpDaysRangeInputChange);
 
                     // Сброс информации о валидации когда окно уже скрылось
-                    $modalSpDaysAdd.on('hidden.bs.modal', function (e) {
-                        $formSpDaysAdd.data('formValidation').resetForm(true);
+                    $modalSpDaysEdit.on('hidden.bs.modal', function (e) {
+                        $formSpDaysEdit.data('formValidation').resetForm(true);
                     });
 
                 }

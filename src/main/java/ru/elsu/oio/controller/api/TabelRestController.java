@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.elsu.oio.Url;
 import ru.elsu.oio.controller.exeption.IncorrectUserDataException;
 import ru.elsu.oio.dto.ErrorDetail;
+import ru.elsu.oio.dto.TabelHolidaysDto;
 import ru.elsu.oio.entity.*;
 import ru.elsu.oio.services.PersonService;
 import ru.elsu.oio.services.SprService;
@@ -48,6 +49,7 @@ public class TabelRestController {
     private List<TabelHolidays> tabelHolidaysList = null;   // Список праздничных дней
 
 
+    //region === Табель =========================================================================================================
 
     //region === GET - Отдаем файл с табелем по HTTP ============================================================================
     @GetMapping(Url.TABEL)
@@ -571,6 +573,10 @@ public class TabelRestController {
     }
     //endregion
 
+    //endregion
+
+
+    //region === Особенные дни табеля ===========================================================================================
 
     //region === GET - Список особенных дней табеля за указанные год/месяц ======================================================
     @GetMapping(Url.TABEL_SPDAYS + "/{year}/{month}")
@@ -662,6 +668,145 @@ public class TabelRestController {
     }
     //endregion
 
+    //endregion
+
+
+    //region === Праздничные дни табеля =========================================================================================
+
+    //region === GET - Список праздничных дней за год ===========================================================================
+    @GetMapping(Url.TABEL_HOLIDAYS + "/{year}")
+    public List<TabelHolidaysDto> getTabelHolidays(@PathVariable int year) {
+        List<TabelHolidaysDto> dtoList = new ArrayList<>();
+        List<TabelHolidays> holidays = tabelService.getTabelHolidays(year);
+        for (TabelHolidays th : holidays) {
+            TabelHolidaysDto dto = th.toDto();
+            if (th.getYear() == 0) {
+                dto.setDate(Util.dateToStr(year, th.getMonth(), th.getDay())); // Заменяем нулевой год на текущий
+            }
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+    //endregion
+
+
+    //region === POST - Добавление праздничных дней  ============================================================================
+    @PostMapping(Url.TABEL_HOLIDAYS)
+    public ResponseEntity<?> createHolidays(@Valid @RequestBody TabelHolidaysDto dto) {
+        TabelHolidays tabelHolidays = null;
+        Calendar calendar = null;
+        try {
+            // Проверяем, что такого праздника еще нет в БД
+            calendar = Util.strToCalendar(dto.getDate());
+            TabelHolidays th = tabelService.getTabelHolidays(
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH) + 1,
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            if (th != null) {
+                throw new IncorrectUserDataException("Праздничный день " + dto.getDate() + " уже есть в базе данных - " + th.getName());
+            }
+
+            // Проверяем, что рабочий день не попадает на будни и не является периодическим
+            checkTabelHolidays(calendar, dto);
+
+            tabelHolidays = tabelService.createTabelHolidays(dto);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        // Если все нормально, отдаем обратно вновь созданный объект
+        dto.setId(tabelHolidays.getId());
+        dto.setDate(Util.dateToStr(calendar.getTime()));
+        return new ResponseEntity<TabelHolidaysDto>(dto, HttpStatus.CREATED);
+    }
+
+    //endregion
+
+
+    //region === PUT - Обновление праздничных дней ==============================================================================
+    @PutMapping(Url.TABEL_HOLIDAYS + "/{id}")
+    public ResponseEntity<?> updateHolidays(@PathVariable Long id, @Valid @RequestBody TabelHolidaysDto dto) {
+        TabelHolidays tabelHolidays = null;
+        try {
+            // Проверяем, что праздник с таким id существует
+            tabelHolidays = getAndCheckTabelHolidays(id);
+
+            // Проверяем, что рабочий день не попадает на будни и не является периодическим
+            Calendar calendar = Util.strToCalendar(dto.getDate());
+            checkTabelHolidays(calendar, dto);
+
+            // Обновляем (меняем только поля year, name и holiday)
+            if (dto.isPeriodic()) {
+                tabelHolidays.setYear(0);
+            } else {
+                tabelHolidays.setYear(calendar.get(Calendar.YEAR));
+            }
+            tabelHolidays.setName(dto.getName().trim());
+            tabelHolidays.setHoliday(dto.isHoliday());
+
+            tabelService.saveTabelHolidays(tabelHolidays);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Обновление не удалось", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        // Если все нормально, отдаем измененный объект обратно
+        TabelHolidaysDto newDto = tabelHolidays.toDto();
+        newDto.setPeriodic(dto.isPeriodic());
+        newDto.setDate(dto.getDate());
+        return new ResponseEntity<TabelHolidaysDto>(newDto, HttpStatus.OK);
+    }
+    //endregion
+
+
+    //region === DELETE - Удаление праздничных дней =============================================================================
+    @DeleteMapping(Url.TABEL_HOLIDAYS + "/{id}")
+    public ResponseEntity<?> deleteHolidays(@PathVariable Long id) {
+        TabelHolidays tabelHolidays = null;
+        try {
+            // Проверяем, что праздник с таким id существует
+            tabelHolidays = getAndCheckTabelHolidays(id);
+
+            tabelService.deleteTabelHolidays(tabelHolidays);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка удаления", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    //endregion
+
+    //endregion
+
+
+    //region === Условные обозначения ===========================================================================================
+
+
+    //region === GET ============================================================================================================
+    @GetMapping(Url.TABEL_NOTATION)
+    public List<SprTabelNotation> getTabelNotation() {
+        return sprService.getAllTabelNotations();
+    }
+    //endregion
+
+    //TODO:
+    //region === POST ===========================================================================================================
+    //endregion
+
+    //TODO:
+    //region === PUT ============================================================================================================
+    //endregion
+
+
+    //TODO:
+    //region === DELETE =========================================================================================================
+    //endregion
+
+
+    //endregion
 
 
 
@@ -775,6 +920,30 @@ public class TabelRestController {
     }
 
 
+    private final TabelHolidays getAndCheckTabelHolidays(Long id) throws IncorrectUserDataException {
+        TabelHolidays tabelHolidays = tabelService.getTabelHolidays(id);
+        if (tabelHolidays == null) {
+            throw new IncorrectUserDataException("Праздничный день с ID = " + id + " не найден в БД !");
+        }
+        return tabelHolidays;
+    }
+
+
+    private final void checkTabelHolidays(Calendar calendar, TabelHolidaysDto dto) throws IncorrectUserDataException {
+        // Проверяем, что рабочий день не попадает на будни
+        if (!isWeekend(calendar) && !dto.isHoliday()) {
+            throw new IncorrectUserDataException("Работа за праздничный день не может быть назначена в будни");
+        }
+
+        // Проверяем, что рабочий день не является периодическим
+        if (dto.isPeriodic() && !dto.isHoliday()) {
+            throw new IncorrectUserDataException("Работа за праздничный день не может быть ежегодной");
+        }
+    }
+
+
+
     //endregion
+
 
 }

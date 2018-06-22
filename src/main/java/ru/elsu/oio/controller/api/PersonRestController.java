@@ -130,13 +130,17 @@ public class PersonRestController {
     public ResponseEntity<?> updatePerson(@PathVariable Long id, @Valid @RequestBody PersonDto personDto) {
         ErrorDetail errorDetail = null;
 
-        // Получаем сотрудника с указанным ID
+        //region Получаем сотрудника с указанным ID
         Person person = personService.getById(id);
         if (person == null) {
             // Возвращаем ошибку, если ID указан не верно
-            errorDetail = new ErrorDetail(HttpStatus.NOT_FOUND, "Сохранение не удалось", "Сотрудник с ID=" + id + " не найден в базе данных");
+            errorDetail = new ErrorDetail(
+                    HttpStatus.NOT_FOUND,
+                    "Сохранение не удалось",
+                    "Сотрудник с ID=" + id + " не найден в базе данных"
+            );
             return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
-        }
+        }//endregion
 
         // Обновляем
         try {
@@ -185,41 +189,31 @@ public class PersonRestController {
             // zip
             s = addressDto.getZip();
             if (s != null) {
-                s = s.trim();
-                if (s.isEmpty()) s = null;
-                address.setZip(s);
+                address.setZip(getTrimOrNull(s));
             }
             // region
-            s = address.getRegion();
+            s = addressDto.getRegion();
             if (s != null) {
-                s = s.trim();
-                if (s.isEmpty()) s = null;
-                address.setRegion(s);
+                address.setRegion(getTrimOrNull(s));
             }
             // district
             s = addressDto.getDistrict();
             if (s != null) {
-                s = s.trim();
-                if (s.isEmpty()) s = null;
-                address.setDistrict(s);
+                address.setDistrict(getTrimOrNull(s));
             }
             // city
             address.setCity(addressDto.getCity().trim());
             // street
             s = addressDto.getStreet();
             if (s != null) {
-                s = s.trim();
-                if (s.isEmpty()) s = null;
-                address.setStreet(s);
+                address.setStreet(getTrimOrNull(s));
             }
             // building
             address.setBuilding(addressDto.getBuilding().trim());
             // kvartira
             s = addressDto.getKvartira();
             if (s != null) {
-                s = s.trim();
-                if (s.isEmpty()) s = null;
-                address.setKvartira(s);
+                address.setKvartira(getTrimOrNull(s));
             }
             // text
             address.setText(addressDto.getText().trim());
@@ -519,13 +513,13 @@ public class PersonRestController {
             return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }//endregion
 
-        //region Получаем сотрудника по id
+        //region Получаем сотрудника с указанным ID
         Person person = personService.getById(id);
         if (person == null) {
             ErrorDetail errorDetail = new ErrorDetail(
                     HttpStatus.NOT_FOUND,
                     "ID сотрудника указан неверно",
-                    "Сотрудник с ID= " + id + " не найден"
+                    "Сотрудник с ID= " + id + " не найден в базе данных"
             );
             return new ResponseEntity<>(errorDetail, errorDetail.getStatus());
         }//endregion
@@ -611,6 +605,25 @@ public class PersonRestController {
             throw new ImageUploadException("Не удается сохранить изображение", e);
         }
     }
+
+    //endregion
+
+
+
+
+    //region === ВСПОМОГАТЕЛЬНЫЕ ПРИВАТНЫЕ МЕТОДЫ ===============================================================================
+
+
+    private String getTrimOrNull(String s) {
+        if (s != null) {
+            s = s.trim();
+            if (s.isEmpty()) s = null;
+        }
+        return s;
+    }
+
+
+
 
     //endregion
 
