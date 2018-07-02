@@ -50,6 +50,11 @@ public class SprServiceImpl implements SprService {
     }
 
     @Override
+    public SprTabelNotation getTabelNotationByKod(String kod) {
+        return sprTabelNotationDao.getByKod(kod);
+    }
+
+    @Override
     public List<SprTabelNotation> getAllTabelNotations() {
         return sprTabelNotationDao.getAll();
     }
@@ -57,6 +62,18 @@ public class SprServiceImpl implements SprService {
     @Override
     public List<SprTabelNotation> getActiveTabelNotations() {
         return sprTabelNotationDao.getAllActive();
+    }
+
+    @Override
+    public SprTabelNotation createTabelNotation(SprTabelNotation dto) {
+        SprTabelNotation tn = new SprTabelNotation();
+        tn.setKod(dto.getKod());
+        tn.setName(dto.getName());
+        tn.setColor(dto.getColor());
+        tn.setActive(dto.getActive());
+        tn.setWorkDay(dto.getWorkDay());
+        saveTabelNotation(tn);
+        return tn;
     }
 
     @Override

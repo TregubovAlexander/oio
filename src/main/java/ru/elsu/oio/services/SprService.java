@@ -16,8 +16,10 @@ public interface SprService {
 
     // Справочник кодов табеля
     public SprTabelNotation getTabelNotationById(Long id);
+    public SprTabelNotation getTabelNotationByKod(String kod);
     public List<SprTabelNotation> getAllTabelNotations();
     public List<SprTabelNotation> getActiveTabelNotations();
+    public SprTabelNotation createTabelNotation(SprTabelNotation dto);
     public void saveTabelNotation(SprTabelNotation sprTabelNotation);
     public void deleteTabelNotation(SprTabelNotation sprTabelNotation);
 

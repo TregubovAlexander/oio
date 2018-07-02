@@ -538,7 +538,7 @@ public class TabelRestController {
         //endregion ----------------------------------------------------------------------------------------------------
 
         //region Тест
-//        // Определение цвета
+        // Определение цвета
 //        row = sheet.createRow(100);
 //        CellStyle style;
 //        for (short a = 0; a < 65; a++) {
@@ -603,7 +603,7 @@ public class TabelRestController {
                 throw new IncorrectUserDataException("Сотрудник с идентификатором " + dto.getPersonId() + " не найден");
             }
             // Проверяем, что код табеля существует и активен
-            getAndCheckTabelNotation(dto.getKodId());
+            getAndCheckActiveTabelNotation(dto.getKodId());
             // Проверяем, что диапазон дат не пересекается
             checkDateRangeIntersects(person, Util.strToDate(dto.getDateBegin()), Util.strToDate(dto.getDateEnd()));
 
@@ -630,7 +630,7 @@ public class TabelRestController {
             // При обновлении сотрудника менять НЕЛЬЗЯ - поэтому просто игнорируем поле dto.personId
 
             // Проверяем, что код табеля существует и активен
-            SprTabelNotation tn = getAndCheckTabelNotation(dto.getKodId());
+            SprTabelNotation tn = getAndCheckActiveTabelNotation(dto.getKodId());
 
             // Проверяем, что диапазон дат не пересекается
             checkDateRangeIntersects(tabelSpDays.getPerson(), Util.strToDate(dto.getDateBegin()), Util.strToDate(dto.getDateEnd()), id);
@@ -792,17 +792,80 @@ public class TabelRestController {
     }
     //endregion
 
-    //TODO:
+
     //region === POST ===========================================================================================================
+    @PostMapping(Url.TABEL_NOTATION)
+    public ResponseEntity<?> createTabelNotation(@Valid @RequestBody SprTabelNotation dto) {
+        SprTabelNotation sprTabelNotation = null;
+        try {
+            // Проверяем, что такого условного обозначения еще нет в БД
+            String kod = dto.getKod().trim();
+            SprTabelNotation tn = sprService.getTabelNotationByKod(kod);
+            if (tn != null) {
+                throw new IncorrectUserDataException("Условное обозначение табеля с кодом " + kod + " уже есть в справочнике");
+            }
+            sprTabelNotation = sprService.createTabelNotation(dto);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        // Если все нормально, отдаем обратно вновь созданный объект
+        dto.setId(sprTabelNotation.getId());
+        return new ResponseEntity<SprTabelNotation>(dto, HttpStatus.CREATED);
+    }
     //endregion
 
-    //TODO:
+
     //region === PUT ============================================================================================================
+    @PutMapping(Url.TABEL_NOTATION + "/{id}")
+    public ResponseEntity<?> updateTabelNotation(@PathVariable Long id, @Valid @RequestBody SprTabelNotation dto) {
+        SprTabelNotation tn = null;
+        try {
+            // Проверяем, что условное обозначение существует
+            tn = getAndCheckTabelNotation(id);
+            // Проверяем, что новое условное обозначение не совпадает с уже существующим
+            String kod = dto.getKod().trim();
+            SprTabelNotation tn2 = sprService.getTabelNotationByKod(kod);
+            if ((tn2 != null) && (tn.getId() != tn2.getId())) {
+                throw new IncorrectUserDataException("Условное обозначение табеля с кодом " + kod + " уже есть в справочнике");
+            }
+
+            // Обновляем
+            tn.setKod(kod);
+            tn.setName(dto.getName().trim());
+            tn.setColor(dto.getColor());
+            tn.setActive(dto.getActive());
+            tn.setWorkDay(dto.getWorkDay());
+
+            sprService.saveTabelNotation(tn);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Сохранение не удалось", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        // Если все нормально, отдаем обратно вновь созданный объект
+        return new ResponseEntity<SprTabelNotation>(tn, HttpStatus.CREATED);
+    }
     //endregion
 
 
-    //TODO:
     //region === DELETE =========================================================================================================
+    @DeleteMapping(Url.TABEL_NOTATION + "/{id}")
+    public ResponseEntity<?>deleteTabelNotation(@PathVariable Long id) {
+        SprTabelNotation tn = null;
+        try {
+            // Проверяем, что условное обозначение существует
+            tn = getAndCheckTabelNotation(id);
+
+            sprService.deleteTabelNotation(tn);
+        } catch (RuntimeException e) {
+            ErrorDetail errorDetail = new ErrorDetail(HttpStatus.BAD_REQUEST, "Ошибка удаления", e.getMessage());
+            return new ResponseEntity<ErrorDetail>(errorDetail, errorDetail.getStatus());
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
     //endregion
 
 
@@ -841,17 +904,23 @@ public class TabelRestController {
     }
 
 
+    private final SprTabelNotation getAndCheckTabelNotation(Long id) throws IncorrectUserDataException {
+        SprTabelNotation tn = sprService.getTabelNotationById(id);
+        if (tn == null) {
+            throw new IncorrectUserDataException("Условное обозначение табеля с ID = " + id + " не найдено в справочнике!");
+        }
+        return tn;
+    }
+
+
     /**
      * Получает код особенного дня табеля из справочника с одновременной проверкой, что он там существует и активен
       * @param id   идентификатор кода особенного дня табеля
      * @return экземпляр класса SprTabelNotation (код особенного дня)
      * @throws IncorrectUserDataException
      */
-    private final SprTabelNotation getAndCheckTabelNotation(Long id) throws IncorrectUserDataException{
-        SprTabelNotation tn = sprService.getTabelNotationById(id);
-        if (tn == null) {
-            throw new IncorrectUserDataException("Особенный день задан некорректно - отсутствует в справочнике");
-        }
+    private final SprTabelNotation getAndCheckActiveTabelNotation(Long id) throws IncorrectUserDataException{
+        SprTabelNotation tn = getAndCheckTabelNotation(id);
         if (!tn.getActive()) {
             throw new IncorrectUserDataException("Особенный день задан некорректно - помечен в справочнике как неиспользуемый");
         }

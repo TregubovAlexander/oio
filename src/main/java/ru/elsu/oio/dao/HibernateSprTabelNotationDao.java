@@ -24,6 +24,12 @@ public class HibernateSprTabelNotationDao implements SprTabelNotationDao {
         return (SprTabelNotation) getCurrentSession().get(SprTabelNotation.class, id);
     }
 
+    public SprTabelNotation getByKod(String kod) {
+        return (SprTabelNotation) getCurrentSession().getNamedQuery("SprTabelNotation.getByKod")
+                .setParameter("kod", kod.trim())
+                .uniqueResult();
+    }
+
     public List<SprTabelNotation> getAll() {
         return getCurrentSession().getNamedQuery("SprTabelNotation.getAll").list();
     }

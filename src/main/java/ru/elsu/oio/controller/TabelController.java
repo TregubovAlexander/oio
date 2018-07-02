@@ -54,7 +54,8 @@ public class TabelController {
                 StyleMapping.SWEETALERT2,
                 StyleMapping.JQUERY_UI,
                 StyleMapping.CHOSEN,
-                StyleMapping.CALENDAR
+                StyleMapping.CALENDAR,
+                StyleMapping.COLORPICKER
         ));
         aceAdmin.getPage().setScripts(Arrays.asList(
                 JQUERY_UI1,
@@ -65,7 +66,8 @@ public class TabelController {
                 SWEETALERT2,
                 FORMVALIDATION,
                 CHOSEN,
-                CALENDAR
+                CALENDAR,
+                COLORPICKER
         ));
         model.addAttribute("aceadmin",aceAdmin);
 

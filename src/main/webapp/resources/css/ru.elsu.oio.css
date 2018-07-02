@@ -18,6 +18,10 @@
 /*    height: 200px !important;*/
 }
 
+.padding-top-7 {
+    padding-top: 7px !important;
+}
+
 .display-none {
     display: none;
 }
@@ -115,4 +119,288 @@ form.compact-10 .form-group {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 30ch;
+}
+
+
+/*   Цвета условных обозначений табеля  */
+
+.cl-box {
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    border: 1px solid gray;
+    border-radius: 4px;
+    padding: 1px;
+}
+
+.cl-0 {
+    background-color: #000000;
+}
+
+.cl-1 {
+     background-color: #ffffff;
+ }
+
+.cl-2 {
+    background-color: #ff0000;
+}
+
+.cl-3 {
+    background-color: #00ff00;
+}
+
+.cl-4 {
+    background-color: #0000ff;
+}
+
+.cl-5 {
+    background-color: #ffff00;
+}
+
+.cl-6 {
+    background-color: #ff00ff;
+}
+
+.cl-7 {
+    background-color: #00ffff;
+}
+
+.cl-8 {
+    background-color: #000000;
+}
+
+.cl-9 {
+    background-color: #ffffff;
+}
+
+.cl-10 {
+    background-color: #ff0000;
+}
+
+.cl-11 {
+    background-color: #00ff00;
+}
+
+.cl-12 {
+    background-color: #0000ff;
+}
+
+.cl-13 {
+    background-color: #ffff00;
+}
+
+.cl-14 {
+    background-color: #ff00ff;
+}
+
+.cl-15 {
+    background-color: #00ffff;
+}
+
+.cl-16 {
+    background-color: #800000;
+}
+
+.cl-17 {
+    background-color: #008000;
+}
+
+.cl-18 {
+    background-color: #000080;
+}
+
+.cl-19 {
+    background-color: #808000;
+}
+
+.cl-20 {
+    background-color: #800080;
+}
+
+.cl-21 {
+    background-color: #008080;
+}
+
+.cl-22 {
+    background-color: #c0c0c0;
+}
+
+.cl-23 {
+    background-color: #808080;
+}
+
+.cl-24 {
+    background-color: #9999ff;
+}
+
+.cl-25 {
+    background-color: #993366;
+}
+
+.cl-26 {
+    background-color: #ffffcc;
+}
+
+.cl-27 {
+    background-color: #ccffff;
+}
+
+.cl-28 {
+    background-color: #660066;
+}
+
+.cl-29 {
+    background-color: #ff8080;
+}
+
+.cl-30 {
+    background-color: #0066cc;
+}
+
+.cl-31 {
+    background-color: #ccccff;
+}
+
+.cl-32 {
+    background-color: #000080;
+}
+
+.cl-33 {
+    background-color: #ff00ff;
+}
+
+.cl-34 {
+    background-color: #ffff00;
+}
+
+.cl-35 {
+    background-color: #00ffff;
+}
+
+.cl-36 {
+    background-color: #800080;
+}
+
+.cl-37 {
+    background-color: #800000;
+}
+
+.cl-38 {
+    background-color: #008080;
+}
+
+.cl-39 {
+    background-color: #0000ff;
+}
+
+.cl-40 {
+    background-color: #00ccff;
+}
+
+.cl-41 {
+    background-color: #ccffff;
+}
+
+.cl-42 {
+    background-color: #ccffcc;
+}
+
+.cl-43 {
+    background-color: #ffff99;
+}
+
+.cl-44 {
+    background-color: #99ccff;
+}
+
+.cl-45 {
+    background-color: #ff99cc;
+}
+
+.cl-46 {
+    background-color: #cc99ff;
+}
+
+.cl-47 {
+    background-color: #ffcc99;
+}
+
+.cl-48 {
+    background-color: #3366ff;
+}
+
+.cl-49 {
+    background-color: #33cccc;
+}
+
+.cl-50 {
+    background-color: #99cc00;
+}
+
+.cl-51 {
+    background-color: #ffcc00;
+}
+
+.cl-52 {
+    background-color: #ff9900;
+}
+
+.cl-53 {
+    background-color: #ff6600;
+}
+
+.cl-54 {
+    background-color: #666699;
+}
+
+.cl-55 {
+    background-color: #969696;
+}
+
+.cl-56 {
+    background-color: #003366;
+}
+
+.cl-57 {
+    background-color: #339966;
+}
+
+.cl-58 {
+    background-color: #003300;
+}
+
+.cl-59 {
+    background-color: #333300;
+}
+
+.cl-60 {
+    background-color: #993300;
+}
+
+.cl-61 {
+    background-color: #993366;
+}
+
+.cl-62 {
+    background-color: #333399;
+}
+
+.cl-63 {
+    background-color: #333333;
+}
+
+.cl-64 {
+    background-color: #000000;
+}
+
+
+
+
+.dropdown-colorpicker a span {
+    border: 1px solid gray;
+    border-radius: 4px;
+}
+
+.dropdown-colorpicker>.dropdown-menu {
+    max-width: 154px;
 }

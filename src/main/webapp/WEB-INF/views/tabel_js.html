@@ -10,17 +10,22 @@
             {
                 var $formTabelCreate = $('#formTabelCreate'),
                     $widgetTabelCreate = $('#widget-tabel-create'),
-                    $widgetSpecialDaysEdit = $('#widget-specialdays-edit'),
+                    $widgetSpDaysEdit = $('#widget-specialdays-edit'),
                     $widgetHolidaysEdit = $('#widget-holidays-edit'),
+                    $widgetTnEdit = $('#widget-tabelnotation-edit'),
                     $dtpSpecialDays = $('#speciadays-dtp'),
                     $tableSpDaysBody = $('#specialdays-table').find('tbody'),
+                    $tableTnBody = $('#tabel-notation-table').find('tbody'),
                     $templateRowSpDays = $tableSpDaysBody.find('tr:first').clone(),
+                    $templateRowTn = $tableTnBody.find('tr:first').clone(),
                     $modalSpDaysEdit = $('#modalSpDaysEdit'),
                     $modalHolidaysEdit = $('#modalHolidaysEdit'),
+                    $modalTnEdit = $('#modalTnEdit'),
                     $selSpDaysPerson = $('#spDaysPerson', $modalSpDaysEdit),
                     $selSpDaysKod = $('#spDaysKod', $modalSpDaysEdit),
                     $formSpDaysEdit = $('#formSpDaysEdit', $modalSpDaysEdit),
                     $formHolidaysEdit = $('#formHolidaysEdit', $modalHolidaysEdit),
+                    $formTnEdit = $('#formTnEdit', $modalTnEdit),
                     $selectedSpDaysRange = $('#selectedSpDaysRange', $formSpDaysEdit),
                     $dtpSpDaysRange = $('#spDaysRange', $formSpDaysEdit),
                     $calendar = $('#calendar');
@@ -29,10 +34,9 @@
                 var TABEL_CREATE = /*[[@{/api/tabel/}]]*/ 'http://localhost:8080/oio/api/tabel/2018/04',
                     TABEL_SPDAYS = /*[[@{/api/tabel/spdays/}]]*/ 'http://localhost:8080/oio/api/tabel/spdays/2018/04',
                     TABEL_HOLIDAYS = /*[[@{/api/tabel/holidays/}]]*/ 'http://localhost:8080/oio/api/tabel/holidays/2018',
+                    TABEL_NOTATIONS = /*[[@{/api/tabel/notations/}]]*/ 'http://localhost:8080/oio/api/tabel/notations',
                     SERVICE_GET_PERSONS = /*[[@{/api/service/persons}]]*/ 'http://localhost:8080/oio/api/service/persons',
                     SERVICE_GET_TABELNOTATIONS = /*[[@{/api/service/tabel/notations}]]*/ 'http://localhost:8080/oio/api/service/tabel/notations';
-
-                var newSpDaysId = 0;
 
 
                 // Создание табеля
@@ -51,7 +55,7 @@
                     var year = tabelDate.year();
                     var month = tabelDate.month() + 1;
 
-                    return $.myAjax(TABEL_SPDAYS + year + '/' + month, 'GET', $widgetSpecialDaysEdit);
+                    return $.myAjax(TABEL_SPDAYS + year + '/' + month, 'GET', $widgetSpDaysEdit);
                 }
 
 
@@ -124,16 +128,35 @@
                     e.preventDefault();
                     $tr = $(this).parents('tr');
                     var id = $tr.data('spDays').id;
-                    spDaysDelete(id)
-                        .done(function (result) {
-                            $tr.remove();
-                        })
-                        .fail(function (result) {
-                            $.showErrorMessage(result, 'Ошибка удаления особенных дней!');
-                        })
-                        .always(function (result) {
-                            $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
-                        });
+                    // Спрашиваем у пользователя, точно ли нужно удалять
+                    swal({
+                        title: "Внимание!",
+                        text: "Вы действительно хотите удалить запись?",
+                        type: "warning",
+                        timer: 100000,
+                        background:"#fcf8e3",
+                        allowOutsideClick: false,
+                        buttonsStyling: false,
+                        confirmButtonText: "Удалить",
+                        confirmButtonClass: "btn btn-lg btn-warning",
+                        showCancelButton: true,
+                        focusCancel: true,
+                        cancelButtonText: "Отменить",
+                        cancelButtonClass: "btn btn-lg btn-cancel"
+                    }).then(function(){
+                        // Удаляем
+                        spDaysDelete(id)
+                            .done(function (result) {
+                                $tr.remove();
+                            })
+                            .fail(function (result) {
+                                $.showErrorMessage(result, 'Ошибка удаления!');
+                            })
+                            .always(function (result) {
+                                $widgetSpDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                            });
+                    }).catch(swal.noop);
+
 
 
                 }
@@ -141,13 +164,122 @@
 
                 // Удаление особенных дней
                 var spDaysDelete = function(id) {
-                    return  $.myAjax(TABEL_SPDAYS + id, 'DELETE', $widgetSpecialDaysEdit);
+                    return  $.myAjax(TABEL_SPDAYS + id, 'DELETE', $widgetSpDaysEdit);
+                }
+
+
+                // Заполнение таблицы условными обозначениями
+                var tnTableCreate = function(data) {
+                    $tableTnBody.empty();
+                    for (var i in data) {
+                        tnTableAddRow(data[i]);
+                    }
+                }
+
+
+                // Добавление строки в таблицу условных обозначений
+                var tnTableAddRow = function(data) {
+                    var $row = tnTableCreateRow(data);
+                    $tableTnBody.append($row);
+                }
+
+
+                // Изменение данных в строке таблицы условных обозначений
+                var tnTableUpdateRow = function(data) {                             //console.log(JSON.stringify(data, null, '\t'));
+                    var $row = $('#tnTableRow_' + data.id, $tableTnBody);           // Ищем строку таблицы, которую нужно обновить
+                    tnTableFillRow($row, data);                                     // Заполняем новыми данными
+                }
+
+
+                // Создание и заполнение одной строки таблицы условных обозначений
+                var tnTableCreateRow = function (data) {
+                    $el = $templateRowTn.clone();
+                    tnTableFillRow($el, data);
+                    return $el;
+                }
+
+
+                // Заполнение одной строки таблицы условных обозначений
+                var tnTableFillRow = function ($tr, data) {
+                    // Загоняем условные обозначения в <tr>.data
+                    $tr.data('tn', data);
+                    $tr.attr('id', 'tnTableRow_' + data.id);
+                    $td = $tr.find('td');
+                    $td.eq(0).html(data.kod);
+                    $td.eq(1).html(data.name);
+                    $td.eq(2).html('<div class="cl-box cl-' + data.color + '"></div>');
+                    $td.eq(3).html('<div class="cl-box cl-1">' + (data.active == true ? '<i class="fa fa-check green bigger-130"></i>':'') + '</div>');
+                    $td.eq(4).html('<div class="cl-box cl-1">' + (data.workDay == true ? '<i class="fa fa-check green bigger-130"></i>':'') + '</div>');
+
+                    // Навешиваем обработчики
+                    $tr.find('a[href="#edit"]').off('click').on('click', tnRowEdit);
+                    $tr.find('a[href="#delete"]').off('click').on('click', tnRowDelete);
+                }
+
+
+                // Редактирование строки условных обозначений
+                var tnRowEdit = function (e) {
+                    e.preventDefault();
+                    $modalTnEdit.data('tn', $(this).parents('tr').data('tn'));
+                    $modalTnEdit.modal();
+                }
+
+
+                // Удаление строки условных обозначений
+                var tnRowDelete = function (e) {
+                    e.preventDefault();
+                    $tr = $(this).parents('tr');
+                    var id = $tr.data('tn').id;
+                    // Спрашиваем у пользователя, точно ли нужно удалять
+                    swal({
+                        title: "Внимание!",
+                        text: "Вы действительно хотите удалить запись?",
+                        type: "warning",
+                        timer: 100000,
+                        background:"#fcf8e3",
+                        allowOutsideClick: false,
+                        buttonsStyling: false,
+                        confirmButtonText: "Удалить",
+                        confirmButtonClass: "btn btn-lg btn-warning",
+                        showCancelButton: true,
+                        focusCancel: true,
+                        cancelButtonText: "Отменить",
+                        cancelButtonClass: "btn btn-lg btn-cancel"
+                    }).then(function(){
+                        // Удаляем
+                        tnDelete(id)
+                            .done(function (result) {
+                                $tr.remove();
+                            })
+                            .fail(function (result) {
+                                $.showErrorMessage(result, 'Ошибка удаления!');
+                            })
+                            .always(function (result) {
+                                $widgetTnEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                            });
+                    }).catch(swal.noop);
+
+
+
+
+                }
+
+
+                // Удаление условного обозначения
+                var tnDelete = function(id) {
+                    return  $.myAjax(TABEL_NOTATIONS + id, 'DELETE', $widgetTnEdit);
                 }
 
 
                 // Получение списка объектов Id + Name по заданному URL
                 var getIdNameList = function(url) {
                     return $.myAjax(url);
+                }
+
+
+                // Получение списка условных обозначений табеля
+                var getTabelNotations = function () {
+                    return $.myAjax(TABEL_NOTATIONS)
                 }
 
 
@@ -167,63 +299,68 @@
                 // Клик по добавлению особенных дней
                 $('#spDaysAdd').off('click').on('click', function (e) {
                     e.preventDefault();
-                    $modalSpDaysEdit.data('spDays', {id: newSpDaysId - 1});
+                    $modalSpDaysEdit.data('spDays', {id: -1});
                     $modalSpDaysEdit.modal();
+                })
+
+
+                // Клик по добавлению условных обозначений
+                $('#tnAdd').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    $modalTnEdit.data('tn', {id: -1});
+                    $modalTnEdit.modal();
                 })
 
 
                 // Добавление или обновление записи об особенных днях (успешная валидация формы)
                 var spDaysAddOrUpdate = function () {
-                    // Собираем данные с формы
-                    var id = $modalSpDaysEdit.data('spDays').id;
-                    var spDays = {id: id};
-                    spDays.personId = $selSpDaysPerson.val();
-                    spDays.dateBegin = $.formatDate($dtpSpDaysRange.find('input[name="start"]').datepicker('getDate'));
-                    spDays.dateEnd = $.formatDate($dtpSpDaysRange.find('input[name="end"]').datepicker('getDate'));
-                    spDays.kodId = $selSpDaysKod.val();
-
-                    // Закрываем диалог
-                    $modalSpDaysEdit.modal('hide');
-
-                    // Формируем запрос
-                    var url, type;
-                    if (id < 0) {
-                        url = TABEL_SPDAYS;
-                        type = 'POST';
-                    } else {
-                        url = TABEL_SPDAYS + id;
-                        type = 'PUT';
-                    }
-
-                    return $.myAjax(url, type, $widgetSpecialDaysEdit, JSON.stringify(spDays));
+                    var data = {id: $modalSpDaysEdit.data('spDays').id};
+                    data.personId = $selSpDaysPerson.val();
+                    data.dateBegin = $.formatDate($dtpSpDaysRange.find('input[name="start"]').datepicker('getDate'));
+                    data.dateEnd = $.formatDate($dtpSpDaysRange.find('input[name="end"]').datepicker('getDate'));
+                    data.kodId = $selSpDaysKod.val();
+                    return formSubmit($modalSpDaysEdit, data, TABEL_SPDAYS, $widgetSpDaysEdit);
                 }
 
 
                 // Добавление или обновление записи о празднике (submit формы)
                 var holidaysAddOrUpdate = function () {
-                    // Собираем данные с формы
-                    var id = $('#holidayId', modalHolidaysEdit).val();
-                    var holiday = {id: id};
-                    holiday.date = $.trim($('#holidayDate', modalHolidaysEdit).val());
-                    holiday.name = $.trim($('#holidayName', modalHolidaysEdit).val());
-                    holiday.holiday = $('#holidayHoliday', modalHolidaysEdit).prop('checked');
-                    holiday.periodic = $('#holidayPeriodic', modalHolidaysEdit).prop('checked');
+                    var data = {id: $('#holidayId', $modalHolidaysEdit).val()};
+                    data.date = $.trim($('#holidayDate', $formHolidaysEdit).val());
+                    data.name = $.trim($('#holidayName', $formHolidaysEdit).val());
+                    data.holiday = $('#holidayHoliday', $formHolidaysEdit).prop('checked');
+                    data.periodic = $('#holidayPeriodic', $formHolidaysEdit).prop('checked');
+                    return formSubmit($modalHolidaysEdit, data, TABEL_HOLIDAYS, $widgetHolidaysEdit);
+                }
 
-                    // Закрываем диалог
-                    $modalHolidaysEdit.modal('hide');
-//console.log(JSON.stringify(holiday, null, '\t'));
 
+                // Добавление или обновление записи об условном обозначении (успешная валидация формы)
+                var tnAddOrUpdate = function () {
+                    var data = {id: $modalTnEdit.data('tn').id};
+                    data.kod = $.trim($('#tnKod', $formTnEdit).val());
+                    data.name = $.trim($('#tnName', $formTnEdit).val());
+                    data.color = $('#tnColor', $formTnEdit).val();
+                    data.active = $('#tnActive', $formTnEdit).prop('checked');
+                    data.workDay = $('#tnWorkDay', $formTnEdit).prop('checked');
+                    return formSubmit($modalTnEdit, data, TABEL_NOTATIONS, $widgetTnEdit);
+                }
+
+
+                // При успешной валидации формы добавляем или обновляем сущность (универсальная функция)
+                var formSubmit = function ($modal, data, url, $widget) {
+                    var id = data.id;
+                    $modal.modal('hide');
+//console.log(JSON.stringify(data, null, '\t'));
                     // Формируем запрос
-                    var url, type;
+                    var type;
                     if (id < 0) {
-                        url = TABEL_HOLIDAYS;
                         type = 'POST';
                     } else {
-                        url = TABEL_HOLIDAYS + id;
+                        url += id;
                         type = 'PUT';
                     }
 
-                    return $.myAjax(url, type, $widgetHolidaysEdit, JSON.stringify(holiday));
+                    return $.myAjax(url, type, $widget, JSON.stringify(data));
                 }
 
 
@@ -272,6 +409,11 @@
                         setSelectOptions($selSpDaysPerson, result);
                     });
 
+                // Заполнение таблицы условных обозначений табеля
+                getTabelNotations()
+                    .done(function(result){
+                        tnTableCreate(result);
+                    });
 
 
 
@@ -280,6 +422,67 @@
 
             /* Настройка элементов страницы */
             {
+                // Ace Custom Color Picker
+                {
+                    var tnColors = {
+                        9: "#ffffff",
+                        10:"#ff0000",
+                        11:"#00ff00",
+                        12:"#0000ff",
+                        13:"#ffff00",
+                        14:"#ff00ff",
+                        15:"#00ffff",
+                        16:"#800000",
+                        17:"#008000",
+                        19:"#808000",
+                        20:"#800080",
+                        21:"#008080",
+                        22:"#c0c0c0",
+                        23:"#808080",
+                        24:"#9999ff",
+                        25:"#993366",
+                        26:"#ffffcc",
+                        27:"#ccffff",
+                        28:"#660066",
+                        29:"#ff8080",
+                        30:"#0066cc",
+                        31:"#ccccff",
+                        40:"#00ccff",
+                        42:"#ccffcc",
+                        43:"#ffff99",
+                        44:"#99ccff",
+                        45:"#ff99cc",
+                        46:"#cc99ff",
+                        47:"#ffcc99",
+                        48:"#3366ff",
+                        49:"#33cccc",
+                        50:"#99cc00",
+                        51:"#ffcc00",
+                        52:"#ff9900",
+                        53:"#ff6600",
+                        54:"#666699",
+                        55:"#969696",
+                        56:"#003366",
+                        57:"#339966",
+                        59:"#333300",
+                        60:"#993300",
+                        62:"#333399"
+                    };  // Массив наших цветов
+
+                    var s = '';
+                    $.each(tnColors, function(key, value) {
+                        s += '<option value="'+ value +'">'+ key +'</option>';
+                    });
+
+                    $('#tnColorPicker').html(s);
+
+                    $('#tnColorPicker').ace_colorpicker()
+                        .on('change', function() {
+                            var clId = Object.keys(tnColors)[Object.values(tnColors).indexOf(this.value)];
+                            $('#tnColor', $formTnEdit).val(clId);
+
+                        });
+                }
 
                 $('.year-month').datetimepicker({
                     locale: 'ru',
@@ -305,7 +508,7 @@
                 $dtpSpecialDays.datetimepicker().on('dp.change', function (e) {
                     getSpecialDays()
                         .done(function (result) {
-                            $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                            $widgetSpDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
                             spDaysTableCreate(result);
                         });
 
@@ -314,7 +517,7 @@
                 $dtpSpecialDays.data('DateTimePicker').date(new Date());
 
 
-                // При показе модального окна modalSpDaysAdd настраиваем его элементы, в зависимости от spDaysId
+                // При показе модального окна modalSpDaysEdit настраиваем его элементы, в зависимости от spDaysId
                 $modalSpDaysEdit.on('shown.bs.modal', function (e) {
                     var spDays = $modalSpDaysEdit.data('spDays');
                     // Заполнение элементов списка обозначений табеля диалогового окна с одновременным выделением нужного элемента
@@ -341,6 +544,28 @@
                     }
 
                 });
+
+
+                // При показе модального окна modalmodalTnEdit настраиваем его элементы, в зависимости от tnId
+                $modalTnEdit.on('show.bs.modal', function (e) {
+                    var tn = $modalTnEdit.data('tn');
+                    if (tn.id < 0) { // Добавление
+                        $('#tnKod', $modalTnEdit).val('');
+                        $('#tnName', $modalTnEdit).val('');
+                        $('#tnColorPicker', $modalTnEdit).ace_colorpicker('pick', 0); // Выбираем первый цвет (белый)
+                        $('#tnColor', $formTnEdit).val(9);
+                        $('#tnActive', $modalTnEdit).prop('checked', false);
+                        $('#tnWorkDay', $modalTnEdit).prop('checked', false);
+                    } else { // Редактирование
+                        $('#tnKod', $modalTnEdit).val($.trim(tn.kod));
+                        $('#tnName', $modalTnEdit).val($.trim(tn.name));
+                        $('#tnColorPicker', $modalTnEdit).ace_colorpicker('pick', tnColors[tn.color]);
+                        $('#tnColor', $formTnEdit).val(tn.color);
+                        $('#tnActive', $modalTnEdit).prop('checked', tn.active === true);
+                        $('#tnWorkDay', $modalTnEdit).prop('checked', tn.workDay === true);
+                    }
+                });
+
 
 
 
@@ -741,7 +966,7 @@
                                     $.showErrorMessage(result, 'Ошибка добавления особенных дней!');
                                 })
                                 .always(function (result) {
-                                    $widgetSpecialDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                                    $widgetSpDaysEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
                                 });
                         }
                     });
@@ -752,6 +977,64 @@
                     // Сброс информации о валидации когда окно уже скрылось
                     $modalSpDaysEdit.on('hidden.bs.modal', function (e) {
                         $formSpDaysEdit.data('formValidation').resetForm(true);
+                    });
+
+                }
+
+
+                // Валидация формы ввода условных обозначений
+                {
+                    $formTnEdit.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            tnKod: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 2 символами',
+                                        max: 2
+                                    }
+                                }
+                            },
+                            tnName: {
+                                validators: {
+                                    notEmpty: {},
+                                    stringLength: {
+                                        message: 'Длина поля ограничена 200 символами',
+                                        max: 200
+                                    }
+                                }
+
+                            }
+                        },
+                        onSuccess: function(e) {
+                            tnAddOrUpdate()
+                                .done(function (result) {
+                                    var id = $modalTnEdit.data('tn').id;
+                                    if (id > 0) {
+                                        tnTableUpdateRow(result);
+                                    } else {
+                                        tnTableAddRow(result);
+                                    }
+                                })
+                                .fail(function (result) {
+                                    $.showErrorMessage(result, 'Ошибка добавления условного обозначения!');
+                                })
+                                .always(function (result) {
+                                    $widgetTnEdit.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                                });
+                        }
+                    });
+
+                    // Сброс информации о валидации когда окно уже скрылось
+                    $modalTnEdit.on('hide.bs.modal', function (e) {
+                        $formTnEdit.data('formValidation').resetForm(true);
                     });
 
                 }
