@@ -9,6 +9,7 @@ public class SidebarItem {
     private String link;
     private String title;
     private String icon;
+    private Boolean active;
     private String badge;
     private String badge_class;
     private String tooltip;

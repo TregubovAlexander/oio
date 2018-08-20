@@ -1,5 +1,6 @@
 package ru.elsu.oio.controller;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -18,7 +19,8 @@ import java.util.Arrays;
 import static ru.elsu.oio.ace.ScriptMapping.*;
 
 @Controller
-public class TabelController {
+@RequestMapping(Url.DOC)
+public class DocumentsController {
 
     @Autowired
     private AceAdmin aceAdmin;
@@ -41,10 +43,15 @@ public class TabelController {
     @Value("${tabel.file.limit}")
     private int tabelFilesLimit;
 
+    @Value("${tabel.notation.otpusk.id}")
+    private Long tnOtpuskId;                    // ID отпуска в справочнике условных обозначений табеля
 
-    //region ===   Табель - Начальная страница раздела ==========================================================================
-    @RequestMapping(Url.DOC + Url.TABEL_PAGE)
-    public String home(ModelMap model) {
+
+
+
+    //region ===   Документация - Табель ========================================================================================
+    @RequestMapping(Url.TABEL)
+    public String docTabel(ModelMap model) {
 
         aceAdmin.setPageInfo(getMessage("ui.section.tabel.name"), getMessage("organization.name"));
         aceAdmin.getPage().setInline_scripts(true);
@@ -74,10 +81,42 @@ public class TabelController {
         // Список файлов с табелем
         model.addAttribute("tabelList", Tabel.getTabelList(filesPath + "/tabel/", tabelFilesLimit));
 
-
-
-
         return "tabel";
+    }
+    //endregion
+
+
+    //region ===   Документация - График отпусков ===============================================================================
+    @RequestMapping(Url.GRAFIK_OTPUSKOV)
+    public String docGrafikOtpuskov(ModelMap model) {
+
+        aceAdmin.setPageInfo(getMessage("ui.section.grafikotpuskov.name"), getMessage("organization.name"));
+        aceAdmin.getPage().setInline_scripts(true);
+        aceAdmin.getPage().setStyles(Arrays.asList(
+                StyleMapping.DATETIMEPICKER,
+                StyleMapping.DATEPICKER,
+                StyleMapping.SWEETALERT2,
+                StyleMapping.JQUERY_UI,
+                StyleMapping.CHOSEN
+        ));
+        aceAdmin.getPage().setScripts(Arrays.asList(
+                JQUERY_UI1,
+                JQUERY_UI2,
+                MOMENT,
+                DATETIMEPICKER,
+                DATEPICKER,
+                SWEETALERT2,
+                FORMVALIDATION,
+                CHOSEN
+        ));
+        model.addAttribute("aceadmin",aceAdmin);
+        model.addAttribute("tnOtpuskId",tnOtpuskId);
+
+
+
+
+
+        return "grafik-otpuskov";
     }
     //endregion
 

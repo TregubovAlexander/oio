@@ -29,11 +29,13 @@ public final class Url {
     public static final String DOC                      = "/doc";
 
     // Табель
-    public static final String TABEL_PAGE               = "/tabel";
-    public static final String TABEL                    = "/tabel/{year}/{month}";
+    public static final String TABEL                    = "/tabel";
     public static final String TABEL_SPDAYS             = "/tabel/spdays";
     public static final String TABEL_HOLIDAYS           = "/tabel/holidays";
     public static final String TABEL_NOTATION           = "/tabel/notations";
+
+    // График отпусков
+    public static final String GRAFIK_OTPUSKOV          = "/otpusk";
 
 
 

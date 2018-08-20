@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<body><div th:fragment="content" th:remove="tag">
+    <script type="text/javascript" th:inline="javascript">
+        /*<![CDATA[*/
+        jQuery(function ($) {
+            /* ****************************************************************************************************** */
+
+            /* Переменные и константы */
+            {
+                var $dtpYear = $('#year-dtp'),
+                    $tableBody = $('#mainTable').find('tbody'),
+                    $templateRow = $tableBody.find('tr:first').clone(),
+                    $modalEdit = $('#modalEdit'),
+                    $formEdit = $('#formEdit', $modalEdit),
+                    $selPerson = $('#person', $modalEdit),
+                    $dtpRange = $('#range', $formEdit),
+                    $selectedRange = $('#selectedRange', $formEdit);
+
+                var GRAFIK_OTPUSKOV = /*[[@{/api/otpusk/}]]*/ 'http://localhost:8080/oio/api/tabel/2018/04',
+                    TABEL_SPDAYS = /*[[@{/api/tabel/spdays/}]]*/ 'http://localhost:8080/oio/api/tabel/spdays/2018/04',
+                    SERVICE_GET_PERSONS = /*[[@{/api/service/persons}]]*/ 'http://localhost:8080/oio/api/service/persons';
+
+                var tnOtpuskId = /*[[${tnOtpuskId}]]*/ 0;
+                var now = moment(new Date());
+            }
+
+            /* Основная логика */
+            {
+                // Получение графика отпусков из БД
+                var getGrafikOtpuskov = function() {
+                    var year = $dtpYear.data('DateTimePicker').date().year();
+                    return $.myAjax(GRAFIK_OTPUSKOV + year);
+                }
+
+
+                // Функция заполнения одной строки таблицы
+                var mainTableFillRow = function ($tr, data) {
+                    $tr.data($.DATA_NAME, data);
+                    $tr.attr('id', 'mainTableRow_' + data.id);
+                    $td = $tr.find('td');
+                    $td.eq(0).html(data.fullName);
+                    $td.eq(1).html(data.dolName);
+
+                    var db = moment(data.dateBegin);
+                    var de = moment(data.dateEnd);
+                    var dc = de.diff(db, 'days') + 1;
+                    $td.eq(2).html(dc);
+
+                    $td.eq(3).html($.reformatDate(data.dateBegin));
+                    $td.eq(4).html($.reformatDate(data.dateEnd));
+
+                    // Подкрашиваем строку сотрудника, который находится в отпуске в текущий момент
+                    if (now.isBetween(db, de, 'days', '[]')) $tr.addClass('votpuske');
+
+                    // Навешиваем обработчики
+                    $tr.find('a[href="#edit"]').off('click').on('click', mainRowEdit);
+                    $tr.find('a[href="#delete"]').off('click').on('click', mainRowDelete);
+                }
+
+
+                // Редактирование строки
+                var mainRowEdit = function (e) {
+                    $.tableEditRow(e, $modalEdit);
+                }
+
+                // Удаление строки
+                var mainRowDelete = function (e) {
+                    $.tableDeleteRow(e, TABEL_SPDAYS);
+                }
+
+
+                // Клик по кнопке "Добавить запись"
+                $('#add').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    $modalEdit.data($.DATA_NAME, {id: -1, kodId: tnOtpuskId});
+                    $modalEdit.modal();
+                })
+
+
+                // Добавление или обновление записи
+                var addOrUpdate = function () {
+                    // Сохраняемая запись - это просто особенный день с кодом отпуска
+                    var obj = $modalEdit.data($.DATA_NAME);
+                    var data = {id: obj.id, kodId: obj.kodId};
+                    data.personId = $selPerson.val();
+                    data.dateBegin = $.formatDate($dtpRange.find('input[name="start"]').datepicker('getDate'));
+                    data.dateEnd = $.formatDate($dtpRange.find('input[name="end"]').datepicker('getDate'));
+                    return formSubmit($modalEdit, data, TABEL_SPDAYS);
+                }
+
+                // При успешной валидации формы добавляем или обновляем сущность (универсальная функция)
+                var formSubmit = function ($modal, data, url, $widget) {
+                    var id = data.id;
+                    $modal.modal('hide');
+                    // Формируем запрос
+                    var type;
+                    if (id < 0) {
+                        type = 'POST';
+                    } else {
+                        url += id;
+                        type = 'PUT';
+                    }
+
+                    return $.myAjax(url, type, $widget, JSON.stringify(data));
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+                // Обработчик события OnChange соответствующих инпутов (нужен в виде отдельной функции, т.к. будет отключаться)
+                var dtpRangeInputChange = function (e) {
+                    $selectedRange.val($(this).val());
+                    $formEdit.formValidation('revalidateField', 'selectedRange');
+                }
+
+
+
+            }
+
+
+
+            /* Загружаем списки */
+            (function() {
+
+                // Заполнение элементов списка сотрудников диалогового окна
+                $.getIdNameList(SERVICE_GET_PERSONS)
+                    .done(function (result){
+                        $.setSelectOptions($selPerson, result);
+                    });
+
+            })();
+
+
+
+            /* Настройка элементов страницы */
+            {
+                $('.year').datetimepicker({
+                    locale: 'ru',
+                    format: 'YYYY',
+                    allowInputToggle: true
+                });
+
+                $dtpRange.datepicker({
+                    language: 'ru',
+                    autoclose: true,
+                    zIndexOffset: 1040,
+                    todayBtn: true,
+                    todayHighlight: true
+                });
+
+
+                // Обновление графика отпусков после изменения года
+                $dtpYear.datetimepicker().on('dp.change', function (e) {
+                    getGrafikOtpuskov()
+                        .done(function (result) {
+                            $.tableCreate($tableBody, $templateRow, result, mainTableFillRow);
+                        });
+
+                });
+
+
+                // Устанавливаем текущую дату в дейтпикер (обязательно после обработчика события, иначе первый раз не сработает)
+                $dtpYear.data('DateTimePicker').date(new Date());
+
+
+                // При показе модального окна modalEdit настраиваем его элементы
+                $modalEdit.on('shown.bs.modal', function (e) {
+                    $selPerson.chosen();
+                    var obj = $modalEdit.data($.DATA_NAME);
+                    if (obj.id < 0) { // Добавление
+                        $selPerson.attr("disabled", false);
+                        $selPerson.find('option:first-child').prop('selected', true).end().trigger('chosen:updated');
+                        $dtpRange.find('input[type="text"]').each(function() {
+                            $(this).off('change');
+                            $(this).datepicker('clearDates');
+                            $(this).on('change', dtpRangeInputChange);
+                        });
+                    } else { // Редактирование
+                        $selPerson.attr("disabled", true);
+                        $selPerson.val(obj.personId).trigger('chosen:updated');
+                        $dtpRange.find('input[name="start"]').datepicker('update', new Date(obj.dateBegin));
+                        $dtpRange.find('input[name="end"]').datepicker('update', new Date(obj.dateEnd));
+                    }
+
+                });
+
+
+
+
+
+            }
+
+
+
+
+
+            /* Валидация форм */
+            {
+
+                // Валидация формы редактирования/добавления отпуска
+                {
+                    $formEdit.formValidation({
+                        framework: 'bootstrap',
+                        icon: {
+                            valid: 'glyphicon glyphicon-ok bigger-120',
+                            invalid: 'glyphicon glyphicon-remove bigger-120',
+                            validating: 'glyphicon glyphicon-refresh'
+                        },
+                        message: 'Поле обязательно для заполнения',
+                        fields: {
+                            selectedRange:    {
+                                excluded: false,
+                                validators: {
+                                    notEmpty: {},
+                                    date: {
+                                        format: 'DD.MM.YYYY',
+                                        message: 'Дата указана неверно'
+                                    }
+                                }
+                            }
+                        },
+                        onSuccess: function(e) {
+                            addOrUpdate()
+                                .done(function (result) {
+                                    var id = $modalEdit.data($.DATA_NAME).id;
+                                    if (id > 0) {
+                                        $.tableUpdateRow($('#mainTableRow_' + id, $tableBody), result, mainTableFillRow);
+                                    } else {
+                                        $.tableAddRow($tableBody, $templateRow, result, mainTableFillRow);
+                                    }
+                                })
+                                .fail(function (result) {
+                                    $.showErrorMessage(result, 'Ошибка добавления записи!');
+                                });
+                        }
+                    });
+
+                    // При "ручном" изменении поля загоняем введенный текст в проверяемое скрытое поле и делаем ревалидацию
+                    $dtpRange.find('input[type="text"]').off('change').on('change', dtpRangeInputChange);
+
+                    // Сброс информации о валидации когда окно уже скрылось
+                    $modalEdit.on('hidden.bs.modal', function (e) {
+                        $formEdit.data('formValidation').resetForm(true);
+                    });
+
+                }
+            }
+
+
+
+
+            /* ****************************************************************************************************** */
+        });
+
+        /*]]>*/
+    </script>
+</div></body></html>

@@ -23,7 +23,7 @@ public class Post {
 
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
     @JoinColumn(name = "personId")
-    private Person person;                     // Ссылка на сотрудника для связи
+    private Person person;                  // Ссылка на сотрудника для связи
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "dolId")
@@ -32,9 +32,12 @@ public class Post {
     @Temporal(TemporalType.DATE)            // Отобразим тип данных из Java-даты (java.util.Date) на SQL-тип даты (java.sql.Date)
     private Date dateBegin;                 // Дата назначения на должность
     @Temporal(TemporalType.DATE)
-    private Date dateEnd;                   // Дата завершения должность
+    private Date dateEnd;                   // Дата завершения должности
     private Float stavka;                   // Число ставок
-    private Boolean active;                 // Активная или нет
+    private Boolean active;                 // Активная или нет (неактивная - это должность, которая когда-то была у сотрудника)
+
+
+
 
     /**
      * Проверяет нужно ли включать данную должность сотрудника в табель.

@@ -1,17 +1,17 @@
--- Структура таблицы `posts`
+-- РЎС‚СЂСѓРєС‚СѓСЂР° С‚Р°Р±Р»РёС†С‹ `posts`
 
 DROP TABLE IF EXISTS `posts`;
 CREATE TABLE IF NOT EXISTS `posts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор записи',
-  `personId` int(11) NOT NULL COMMENT 'Идентификатор сотрудника ',
-  `dolId` int(11) NOT NULL COMMENT 'Идентификатор должности из справочника должностей sprDol',
-  `dateBegin` date NOT NULL COMMENT 'Дата назначения на должность',
-  `dateEnd` date DEFAULT NULL COMMENT 'Дата назначения на должность',
-  `stavka` float DEFAULT NULL COMMENT 'Число ставок',
-  `active` TINYINT NOT NULL DEFAULT 1 COMMENT 'Активная / Неактивная (Действующая / Архивная)',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ Р·Р°РїРёСЃРё',
+  `personId` int(11) NOT NULL COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєР° ',
+  `dolId` int(11) NOT NULL COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РґРѕР»Р¶РЅРѕСЃС‚Рё РёР· СЃРїСЂР°РІРѕС‡РЅРёРєР° РґРѕР»Р¶РЅРѕСЃС‚РµР№ sprDol',
+  `dateBegin` date NOT NULL COMMENT 'Р”Р°С‚Р° РЅР°Р·РЅР°С‡РµРЅРёСЏ РЅР° РґРѕР»Р¶РЅРѕСЃС‚СЊ',
+  `dateEnd` date DEFAULT NULL COMMENT 'Р”Р°С‚Р° РЅР°Р·РЅР°С‡РµРЅРёСЏ РЅР° РґРѕР»Р¶РЅРѕСЃС‚СЊ',
+  `stavka` float DEFAULT NULL COMMENT 'Р§РёСЃР»Рѕ СЃС‚Р°РІРѕРє',
+  `active` TINYINT NOT NULL DEFAULT 1 COMMENT 'РђРєС‚РёРІРЅР°СЏ / РќРµР°РєС‚РёРІРЅР°СЏ (Р”РµР№СЃС‚РІСѓСЋС‰Р°СЏ / РђСЂС…РёРІРЅР°СЏ)',
   PRIMARY KEY (`id`),
   KEY `personId` (`personId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Список должностей, занимаемых сотрудниками в организации' AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='РЎРїРёСЃРѕРє РґРѕР»Р¶РЅРѕСЃС‚РµР№, Р·Р°РЅРёРјР°РµРјС‹С… СЃРѕС‚СЂСѓРґРЅРёРєР°РјРё РІ РѕСЂРіР°РЅРёР·Р°С†РёРё' AUTO_INCREMENT=1 ;
 
 
 INSERT INTO `posts` (`id`, `personId`,`dolId`,`dateBegin`,`dateEnd`,`stavka`, `active`) VALUES

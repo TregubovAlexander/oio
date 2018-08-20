@@ -15,12 +15,12 @@
 
     <!-- Заголовки вкладок -->
     <ul class="nav nav-tabs" id="tabelTab">
-        <li>
+        <li class="active">
             <a data-toggle="tab" href="#getTabel">
                 <i class="pink ace-icon fa fa-files-o bigger-120"></i> Получить табель
             </a>
         </li>
-        <li class="active">
+        <li>
             <a data-toggle="tab" href="#createTabel">
                 <i class="blue ace-icon fa fa-table bigger-120"></i> Создать табель
             </a>
@@ -32,7 +32,7 @@
     <div class="tab-content padding-24">
 
         <!-- Получить табель -->
-        <div id="getTabel" class="tab-pane fade">
+        <div id="getTabel" class="tab-pane fade in active">
 
             <div class="row">
 
@@ -69,7 +69,7 @@
         </div><!-- /Получить табель -->
 
         <!-- Создать табель -->
-        <div id="createTabel" class="tab-pane fade in active">
+        <div id="createTabel" class="tab-pane fade">
 
             <!-- Контейнер виджетов -->
             <div class="invisible" id="main-widget-container">

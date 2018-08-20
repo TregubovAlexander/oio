@@ -87,12 +87,16 @@ public class AceConfig {
 
 
 
+
+
+
+
         // Элементы меню (SideBar)
         List<SidebarItem> sidebarItems = new ArrayList<SidebarItem>();
         sidebarItems.add(new SidebarItem("persons","Сотрудники","fa fa-user"));
         sidebarItems.add(new SidebarItem("Документация", "fa fa-files-o", Arrays.asList(
                 new SidebarItem("doc/tabel","Табель"),
-                new SidebarItem("doc/grafotpusk","График отпусков")
+                new SidebarItem("doc/otpusk","График отпусков")
         )));
 
         sidebarItems.add(new SidebarItem("Справочники","fa fa-file-text-o", Arrays.asList(
@@ -104,6 +108,11 @@ public class AceConfig {
                 new SidebarItem("sprav/extravalue","Перечень дополнительных показателей")
         )));
         sidebarItems.add(new SidebarItem("extravalue","Доп. показатели","fa fa-database"));
+
+
+
+
+
 
 
 

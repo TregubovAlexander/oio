@@ -16,6 +16,7 @@ import ru.elsu.oio.entity.*;
 import ru.elsu.oio.services.PersonService;
 import ru.elsu.oio.services.SprService;
 import ru.elsu.oio.services.TabelService;
+import ru.elsu.oio.tabel.PersonForOtpusk;
 import ru.elsu.oio.tabel.PersonForTabel;
 import ru.elsu.oio.dto.TabelSpDaysDto;
 import ru.elsu.oio.utils.ExcelUtil;
@@ -45,6 +46,10 @@ public class TabelRestController {
     @Value("${files.path}")
     private String filesPath;
 
+    @Value("${tabel.notation.otpusk.id}")
+    private Long tnOtpuskId;
+
+
     private List<TabelSpDays> tabelSpDaysList = null;       // Список особенных дней
     private List<TabelHolidays> tabelHolidaysList = null;   // Список праздничных дней
 
@@ -52,7 +57,7 @@ public class TabelRestController {
     //region === Табель =========================================================================================================
 
     //region === GET - Отдаем файл с табелем по HTTP ============================================================================
-    @GetMapping(Url.TABEL)
+    @GetMapping(Url.TABEL + "/{year}/{month}")
     public HttpEntity<byte[]> sendTabelFile(@PathVariable int year, @PathVariable int month) {
         String fileName = "tabel-" + Integer.toString(year) + "-" + String.format("%02d", month) + ".xlsx";
 
@@ -82,7 +87,7 @@ public class TabelRestController {
      * @param year   - год за который делается табель
      * @param month  - месяц за который делается табель
      */
-    @PostMapping(Url.TABEL)
+    @PostMapping(Url.TABEL + "/{year}/{month}")
     public ResponseEntity<?> getTabel(@PathVariable int year, @PathVariable int month) {
 
         try {
@@ -311,7 +316,7 @@ public class TabelRestController {
         tabelHolidaysList = tabelService.getTabelHolidays(year, month);
         //endregion
 
-        // Константы
+        // Константы TODO: заменить на параметры в файле
         SprTabelNotation TN_WEEKEND = sprService.getTabelNotationById(26L);     // 26 - ID выходного дня
         SprTabelNotation TN_WORKDAY = sprService.getTabelNotationById(1L);      // 1 - ID рабочего дня
         SprTabelNotation TN_CHILD_CARE = sprService.getTabelNotationById(15L);  // 15 - ID отпуска по уходу за ребенком до 3-х лет
@@ -390,7 +395,9 @@ public class TabelRestController {
             }
             //endregion
 
-            short cellColor = IndexedColors.WHITE.getIndex();
+            // TODO: разобраться с цветом явки - не меняется почему-то
+//            short cellColor = IndexedColors.WHITE.getIndex(); // TODO: заменить на цвет явки - жестко устанавливать белый не надо!
+            short cellColor = TN_WORKDAY.getColor();
             for (int d = dolDayBegin; d <= dolDayEnd; d++) {
                 cell1 = null; cell2 = null;
                 calendar.set(Calendar.DAY_OF_MONTH, d);
@@ -667,6 +674,57 @@ public class TabelRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
     //endregion
+
+    //endregion
+
+
+    //region === График отпусков ================================================================================================
+
+    //region === GET - Список сотрудников с датами их отпуска в конкретном году =================================================
+    @GetMapping(Url.GRAFIK_OTPUSKOV + "/{year}")
+    public List<PersonForOtpusk> getGrafikOtpuskov(@PathVariable int year) {
+        // Получаем все особенные дни всех сотрудников за год
+        Date d1 = new GregorianCalendar(year, Calendar.JANUARY, 1).getTime();
+        Date d2 = new GregorianCalendar(year, Calendar.DECEMBER, 31).getTime();
+        List<TabelSpDays> tabelSpDaysList = tabelService.getTabelSpDays(d1, d2);
+
+        // Фильтруем - оставляем только отпуска
+        List<PersonForOtpusk> otpusksList = new ArrayList<>();
+        for (TabelSpDays days : tabelSpDaysList) {
+            if (days.getKod().getId() != tnOtpuskId) continue;
+
+            PersonForOtpusk pfo = new PersonForOtpusk();
+
+            Person p = days.getPerson();
+
+            pfo.setId(days.getId());        // Идентификатор особенного дня (с отпуском)
+            pfo.setKodId(days.getKod().getId());
+            pfo.setPersonId(p.getId());
+            pfo.setFullName(p.getFullName());
+            pfo.setDolName(p.getMainPost().getDol().getShortName());
+            pfo.setTabNo(p.getTabNo());
+            pfo.setDateBegin(days.getDateBegin());
+            pfo.setDateEnd(days.getDateEnd());
+//            long milliseconds = days.getDateEnd().getTime() - days.getDateBegin().getTime();
+//            int dayCount = (int) (milliseconds / (1000 * 60 * 60 * 24)) + 1;
+//            pfo.setDayCount(dayCount);
+
+            otpusksList.add(pfo);
+        }
+
+        // Сортируем по фамилии сотрудника
+        Collections.sort(otpusksList, new Comparator<PersonForOtpusk>() {
+            public int compare(PersonForOtpusk p1, PersonForOtpusk p2) {
+                return p1.getFullName().compareTo(p2.getFullName());
+            }
+        });
+
+        return otpusksList;
+    }
+    //endregion
+
+
+
 
     //endregion
 

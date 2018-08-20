@@ -1,32 +1,32 @@
--- Структура таблицы `persons`
+-- РЎС‚СЂСѓРєС‚СѓСЂР° С‚Р°Р±Р»РёС†С‹ `persons`
 
 DROP TABLE IF EXISTS `persons`;
 CREATE TABLE `persons` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор сотрудника',
-  `surname` varchar(60) NOT NULL COMMENT 'Фамилия',
-  `name` varchar(60) NOT NULL COMMENT 'Имя',
-  `patronymic` varchar(60) NOT NULL COMMENT 'Отчество',
-  `dr` date NOT NULL COMMENT 'Дата рождения',
-  `gender` varchar(1) NOT NULL COMMENT 'Пол',
-  `homePhone` varchar(18) DEFAULT NULL COMMENT 'Телефон домашний',
-  `workPhone` varchar(18) DEFAULT NULL COMMENT 'Телефон рабочий',
-  `mobilePhone` varchar(18) DEFAULT NULL COMMENT 'телефон мобильный',
-  `email` varchar(255) DEFAULT NULL COMMENT 'Адрес электронной почты',
-  `semPol` tinyint(1) DEFAULT '0' NULL COMMENT 'Семейное положение 1- женат/0-холост',
-  `datPrin` date DEFAULT NULL COMMENT 'Дата принятия на работу',
-  `tabNo` varchar(10) DEFAULT NULL COMMENT 'Табельный номер',
-  `dopsved` text COMMENT 'Дополнительные сведения',
-  `uvolen` tinyint(1) DEFAULT '0' NOT NULL COMMENT 'Уволен - 1 / Работает - 0',
-  `datUvol` date DEFAULT NULL COMMENT 'Дата увольнения',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєР°',
+  `surname` varchar(60) NOT NULL COMMENT 'Р¤Р°РјРёР»РёСЏ',
+  `name` varchar(60) NOT NULL COMMENT 'РРјСЏ',
+  `patronymic` varchar(60) NOT NULL COMMENT 'РћС‚С‡РµСЃС‚РІРѕ',
+  `dr` date NOT NULL COMMENT 'Р”Р°С‚Р° СЂРѕР¶РґРµРЅРёСЏ',
+  `gender` varchar(1) NOT NULL COMMENT 'РџРѕР»',
+  `homePhone` varchar(18) DEFAULT NULL COMMENT 'РўРµР»РµС„РѕРЅ РґРѕРјР°С€РЅРёР№',
+  `workPhone` varchar(18) DEFAULT NULL COMMENT 'РўРµР»РµС„РѕРЅ СЂР°Р±РѕС‡РёР№',
+  `mobilePhone` varchar(18) DEFAULT NULL COMMENT 'С‚РµР»РµС„РѕРЅ РјРѕР±РёР»СЊРЅС‹Р№',
+  `email` varchar(255) DEFAULT NULL COMMENT 'РђРґСЂРµСЃ СЌР»РµРєС‚СЂРѕРЅРЅРѕР№ РїРѕС‡С‚С‹',
+  `semPol` tinyint(1) DEFAULT '0' NULL COMMENT 'РЎРµРјРµР№РЅРѕРµ РїРѕР»РѕР¶РµРЅРёРµ 1- Р¶РµРЅР°С‚/0-С…РѕР»РѕСЃС‚',
+  `datPrin` date DEFAULT NULL COMMENT 'Р”Р°С‚Р° РїСЂРёРЅСЏС‚РёСЏ РЅР° СЂР°Р±РѕС‚Сѓ',
+  `tabNo` varchar(10) DEFAULT NULL COMMENT 'РўР°Р±РµР»СЊРЅС‹Р№ РЅРѕРјРµСЂ',
+  `dopsved` text COMMENT 'Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ СЃРІРµРґРµРЅРёСЏ',
+  `uvolen` tinyint(1) DEFAULT '0' NOT NULL COMMENT 'РЈРІРѕР»РµРЅ - 1 / Р Р°Р±РѕС‚Р°РµС‚ - 0',
+  `datUvol` date DEFAULT NULL COMMENT 'Р”Р°С‚Р° СѓРІРѕР»СЊРЅРµРЅРёСЏ',
 
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Список сотрудников отдела' AUTO_INCREMENT=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='РЎРїРёСЃРѕРє СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ РѕС‚РґРµР»Р°' AUTO_INCREMENT=1;
 
 
-INSERT INTO `persons` (`id`, `surname`, `name`, `patronymic`, `dr`, `gender`, `semPol`) VALUES ('1', 'Трегубов', 'Александр', 'Борисович',   '1979-10-24', 'm','1');
-INSERT INTO `persons` (`id`, `surname`, `name`, `patronymic`, `dr`, `gender`, `semPol`) VALUES ('2', 'Числов',   'Геннадий',  'Анатольевич', '1966-09-24', 'm','1');
-INSERT INTO `persons` (`id`, `surname`, `name`, `patronymic`, `dr`, `gender`, `semPol`) VALUES ('3', 'Самойлов', 'Александр', 'Анатольевич', '1972-02-23', 'm','1');
+INSERT INTO `persons` (`id`, `surname`, `name`, `patronymic`, `dr`, `gender`, `semPol`) VALUES ('1', 'РўСЂРµРіСѓР±РѕРІ', 'РђР»РµРєСЃР°РЅРґСЂ', 'Р‘РѕСЂРёСЃРѕРІРёС‡',   '1979-10-24', 'm','1');
+INSERT INTO `persons` (`id`, `surname`, `name`, `patronymic`, `dr`, `gender`, `semPol`) VALUES ('2', 'Р§РёСЃР»РѕРІ',   'Р“РµРЅРЅР°РґРёР№',  'РђРЅР°С‚РѕР»СЊРµРІРёС‡', '1966-09-24', 'm','1');
+INSERT INTO `persons` (`id`, `surname`, `name`, `patronymic`, `dr`, `gender`, `semPol`) VALUES ('3', 'РЎР°РјРѕР№Р»РѕРІ', 'РђР»РµРєСЃР°РЅРґСЂ', 'РђРЅР°С‚РѕР»СЊРµРІРёС‡', '1972-02-23', 'm','1');
 
 
-ALTER TABLE persons ADD `uvolen` tinyint(1) DEFAULT '0' NOT NULL COMMENT 'Уволен - 1 / Работает - 0';
-ALTER TABLE persons ADD `datUvol` date DEFAULT NULL COMMENT 'Дата увольнения';
+ALTER TABLE persons ADD `uvolen` tinyint(1) DEFAULT '0' NOT NULL COMMENT 'РЈРІРѕР»РµРЅ - 1 / Р Р°Р±РѕС‚Р°РµС‚ - 0';
+ALTER TABLE persons ADD `datUvol` date DEFAULT NULL COMMENT 'Р”Р°С‚Р° СѓРІРѕР»СЊРЅРµРЅРёСЏ';

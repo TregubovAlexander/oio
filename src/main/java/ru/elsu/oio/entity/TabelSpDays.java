@@ -9,7 +9,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "tabelSpecialDays")
+@Table(name = "tabelSpDays")
 @NamedQueries({
         @NamedQuery(name = "TabelSpDays.get",
                 query = "SELECT d FROM TabelSpDays d WHERE (:date1 <= d.dateEnd) AND (d.dateBegin <= :date2)"),

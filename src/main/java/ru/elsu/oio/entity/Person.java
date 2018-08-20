@@ -109,6 +109,16 @@ public class Person {
         return surname + " " + name + " " + patronymic;
     }
 
+    // Получаем основную должность (пока сделал основной ту, у которой больше число ставок, или первую из списка)
+    public Post getMainPost() {
+        Post result = this.postList.get(0);
+
+        // Выбираем подходящую должность
+        for (Post p : this.postList) {
+            if (p.getStavka() > result.getStavka()) result = p;
+        }
+        return result;
+    }
 
 
     // Перегнать в DTO

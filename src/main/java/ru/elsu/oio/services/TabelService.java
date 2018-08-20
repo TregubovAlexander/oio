@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface TabelService {
 
-    // TabelDays
+    // TabelSpDays
     public TabelSpDays getTabelSpDays(Long id);
     public List<TabelSpDays> getTabelSpDays(Date date1, Date date2);
     public List<TabelSpDays> getTabelSpDays(int year, int month);

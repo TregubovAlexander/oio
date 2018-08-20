@@ -28,12 +28,17 @@ public final class Tabel { // Класс не расширяемый, тольк
         } catch (Exception e) {
             throw new RuntimeException("Не удалось получить список файлов табеля");
         }
+
         // Сортируем по дате последней модификации
-        Collections.sort(files, new Comparator<File>() {
-            public int compare(File f1, File f2) {
-                return Long.compare(f2.lastModified(), f1.lastModified());
-            }
-        });
+//        Collections.sort(files, new Comparator<File>() {
+//            public int compare(File f1, File f2) {
+//                return Long.compare(f2.lastModified(), f1.lastModified());
+//            }
+//        });
+
+        // Сортируем по имени файла (по убыванию)
+        Collections.sort(files, Collections.reverseOrder());
+
         // Формируем список с результатом
         List<TabelPeriod> tpList = new ArrayList<>();
         String fn = "", s = "";
@@ -86,19 +91,7 @@ public final class Tabel { // Класс не расширяемый, тольк
     //endregion
 
 
-    //region ===  ====
 
-    //endregion
-
-
-    //region ===  ====
-
-    //endregion
-
-
-    //region ===  ====
-
-    //endregion
 
 }
 

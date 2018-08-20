@@ -1,14 +1,14 @@
--- Структура таблицы `personChildren`
+-- РЎС‚СЂСѓРєС‚СѓСЂР° С‚Р°Р±Р»РёС†С‹ `personChildren`
 
 DROP TABLE IF EXISTS `personChildren`;
 CREATE TABLE IF NOT EXISTS `personChildren` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор записи',
-  `personId` int(11) NOT NULL COMMENT 'Идентификатор сотрудника',
-  `childrenId` int(11) NOT NULL COMMENT 'Идентификатор ребенка',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ Р·Р°РїРёСЃРё',
+  `personId` int(11) NOT NULL COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєР°',
+  `childrenId` int(11) NOT NULL COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЂРµР±РµРЅРєР°',
   PRIMARY KEY (`id`),
   KEY `personId` (`personId`),
   KEY `childrenId` (`childrenId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Дети конкретного сотрудника' AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Р”РµС‚Рё РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ СЃРѕС‚СЂСѓРґРЅРёРєР°' AUTO_INCREMENT=1 ;
 
 
 INSERT INTO `personChildren` (`id`, `personId`, `childrenId`) VALUES

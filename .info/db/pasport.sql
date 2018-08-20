@@ -1,15 +1,15 @@
--- Структура таблицы `pasport`
+-- РЎС‚СЂСѓРєС‚СѓСЂР° С‚Р°Р±Р»РёС†С‹ `pasport`
 
 DROP TABLE IF EXISTS `pasport`;
 CREATE TABLE IF NOT EXISTS `pasport` (
-  `personId` int(11) NOT NULL COMMENT 'Идентификатор сотрудника',
-  `ser` varchar(4) NOT NULL COMMENT 'Серия паспорта',
-  `num` varchar(6) NOT NULL COMMENT 'Номер паспорта',
-  `dat` date NOT NULL COMMENT 'Дата выдачи',
-  `org` varchar(255) NOT NULL COMMENT 'Кем выдан',
+  `personId` int(11) NOT NULL COMMENT 'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЃРѕС‚СЂСѓРґРЅРёРєР°',
+  `ser` varchar(4) NOT NULL COMMENT 'РЎРµСЂРёСЏ РїР°СЃРїРѕСЂС‚Р°',
+  `num` varchar(6) NOT NULL COMMENT 'РќРѕРјРµСЂ РїР°СЃРїРѕСЂС‚Р°',
+  `dat` date NOT NULL COMMENT 'Р”Р°С‚Р° РІС‹РґР°С‡Рё',
+  `org` varchar(255) NOT NULL COMMENT 'РљРµРј РІС‹РґР°РЅ',
   PRIMARY KEY (`personId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Паспортные данные сотрудников';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='РџР°СЃРїРѕСЂС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ';
 
 
 INSERT INTO `pasport` (`personId`, `ser`, `num`, `dat`, `org`) VALUES
-(1, '4202', '595095', '2002-09-12', 'ОВД г.Ельца Липецкой обл.');
+(1, '4202', '595095', '2002-09-12', 'РћР’Р” Рі.Р•Р»СЊС†Р° Р›РёРїРµС†РєРѕР№ РѕР±Р».');

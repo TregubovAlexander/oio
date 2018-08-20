@@ -3,6 +3,8 @@
  */
 (function($) {
 
+    $.DATA_NAME = 'oioObject';
+
     // Отправка JSON-объекта на сервер методом POST
     $.postJSON = function (url, data, success, error) {
         var deferred = $.ajax({
@@ -129,6 +131,100 @@
         return y + '-' + m + '-' + d;
     }
 
+    // Переформатирование текстовой строки с датой из формата yyyy-mm-dd в формат dd.mm.yyyy
+    $.reformatDate = function (s) {
+        return s.split('-').reverse().join('.');
+    }
+
+
+    // Работа с таблицами
+    {
+        // Заполнение всей таблицы
+        $.tableCreate = function($tableBody, $templateRow, data, tableFillRow) {
+            $tableBody.empty();
+            for (var i in data) {
+                $.tableAddRow($tableBody, $templateRow, data[i], tableFillRow);
+            }
+        }
+
+        // Добавление строки в таблицу
+        $.tableAddRow = function($tableBody, $templateRow, data, tableFillRow) {
+            var $row = $.tableCreateRow($templateRow, data, tableFillRow);
+            $tableBody.append($row);
+        }
+
+        // Создание и заполнение одной строки таблицы
+        $.tableCreateRow = function ($templateRow, data, tableFillRow) {
+            $el = $templateRow.clone();
+            tableFillRow($el, data);
+            return $el;
+        }
+
+        // Изменение данных в строке таблицы
+        $.tableUpdateRow = function($row, data, tableFillRow) {
+            tableFillRow($row, data);
+        }
+
+        // Удаление строки таблицы
+        $.tableDeleteRow = function (e, url, $widget) {
+            e.preventDefault();
+            var $tr = $(e.target).parents('tr')
+            var id = $tr.data($.DATA_NAME).id;
+//console.log($tr.data($.DATA_NAME));
+            swal({
+                title: "Внимание!",
+                text: "Вы действительно хотите удалить запись?",
+                type: "warning",
+                timer: 100000,
+                background:"#fcf8e3",
+                allowOutsideClick: false,
+                buttonsStyling: false,
+                confirmButtonText: "Удалить",
+                confirmButtonClass: "btn btn-lg btn-warning",
+                showCancelButton: true,
+                focusCancel: true,
+                cancelButtonText: "Отменить",
+                cancelButtonClass: "btn btn-lg btn-cancel"
+            }).then(function(){
+                $.myAjax(url + id, 'DELETE', $widget)
+                    .done(function (result) {
+                        $tr.remove();
+                    })
+                    .fail(function (result) {
+                        $.showErrorMessage(result, 'Ошибка удаления!');
+                    })
+                    .always(function (result) {
+                        $widget.trigger('reloaded.ace.widget'); // Отключаем крутилку
+                    });
+            }).catch(swal.noop);
+        }
+
+        // Клик по иконке редактирования строки таблицы открывает модальное окно
+        $.tableEditRow = function(e, $modal) {
+            e.preventDefault();
+            $modal.data($.DATA_NAME, $(e.target).parents('tr').data($.DATA_NAME));
+            $modal.modal();
+        }
+    }
+
+
+    // Получение списка объектов Id + Name по заданному URL
+    $.getIdNameList = function(url) {
+        return $.myAjax(url);
+    }
+
+
+    // Заполнение пунктов выпадающего списка (парами id + name)
+    $.setSelectOptions = function($select, data, id) {
+        id = id || 0;
+        var options = '';
+        $.each(data, function() {
+            options += '<option ';
+            if (this.id === id) options += ' selected ';
+            options += ' value="' + this.id + '">' + this.name + '</option>';
+        });
+        $select.html(options);
+    }
 
 
 })(jQuery);
