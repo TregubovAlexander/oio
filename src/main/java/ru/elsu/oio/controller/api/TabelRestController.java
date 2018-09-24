@@ -693,9 +693,10 @@ public class TabelRestController {
         for (TabelSpDays days : tabelSpDaysList) {
             if (days.getKod().getId() != tnOtpuskId) continue;
 
-            PersonForOtpusk pfo = new PersonForOtpusk();
-
             Person p = days.getPerson();
+            if (p.getUvolen()) continue;
+
+            PersonForOtpusk pfo = new PersonForOtpusk();
 
             pfo.setId(days.getId());        // Идентификатор особенного дня (с отпуском)
             pfo.setKodId(days.getKod().getId());

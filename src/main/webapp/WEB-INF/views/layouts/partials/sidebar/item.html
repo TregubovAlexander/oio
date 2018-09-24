@@ -7,11 +7,9 @@
 
 <div th:fragment="content" th:remove="tag">
     <li th:class="${item.item_class != null} ? ${item.item_class} : ''" th:classappend="(${aceadmin.page.horizontal_menu} ? 'hover ' : '')"><!-- print class name (active, open, etc) if it exists -->
+
         <a href="#" th:href="@{'/' + ${item.link}}" th:class="${item.submenu} ? 'dropdown-toggle' : '' ">
             <i class="menu-icon" th:classappend="${item.icon}"></i>
-
-
-
 
             <!-- level-1 -->
             <th:block th:utext="${level == 1} ? '<span class=\'menu-text\'>' : ''" />
@@ -27,9 +25,6 @@
             <!-- level-1 -->
             <th:block th:utext="${level == 1} ? '</span>' : ''"/>
             <!-- /level-1 -->
-
-
-
 
 
             <b class="arrow fa fa-angle-down" th:if="${item.submenu != null}"></b>

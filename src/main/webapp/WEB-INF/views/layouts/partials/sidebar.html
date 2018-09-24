@@ -19,7 +19,7 @@
 
         <ul class="nav nav-list" th:with="level=0"> <!-- Переменная level определяет уровень пункта меню. Самый верхний = 1 -->
             <!-- Формируем дерево sidebar_items -->
-            <div th:remove="tag" th:each="item : ${aceadmin.sidebarItems}" th:include="layouts/partials/sidebar/item :: content" th:with="level=${level + 1}"></div>
+            <div th:remove="tag" th:each="item : ${aceadmin.sidebar}" th:include="layouts/partials/sidebar/item :: content" th:with="level=${level + 1}"></div>
         </ul><!-- /.nav-list -->
 
         <!-- #section:basics/sidebar.layout.minimize -->

@@ -92,22 +92,38 @@ public class AceConfig {
 
 
         // Элементы меню (SideBar)
-        List<SidebarItem> sidebarItems = new ArrayList<SidebarItem>();
-        sidebarItems.add(new SidebarItem("persons","Сотрудники","fa fa-user"));
-        sidebarItems.add(new SidebarItem("Документация", "fa fa-files-o", Arrays.asList(
-                new SidebarItem("doc/tabel","Табель"),
-                new SidebarItem("doc/otpusk","График отпусков")
+        List<SidebarItem> sidebar = new ArrayList<SidebarItem>();
+        sidebar.add(new SidebarItem("sbPersons", "persons","Сотрудники","fa fa-user"));
+
+        sidebar.add(new SidebarItem("sbDoc", "Документация", "fa fa-files-o", Arrays.asList(
+                new SidebarItem("sbDocTabel", "doc/tabel", "Табель"),
+                new SidebarItem("sbDocOtpusk", "doc/otpusk", "График отпусков"),
+
+                new SidebarItem("sbControl", "Управление", Arrays.asList(
+                        new SidebarItem("sbControlInetOb", "control/inetob", "Интернет в общежитии"),
+                        new SidebarItem("fgfsg", "", "ывапрывавпа"),
+                        new SidebarItem("hgmfg", "", "ыавпываапимс"),
+                        new SidebarItem("fadga", "Подпункт", Arrays.asList(
+                                new SidebarItem("fkdsj", "", "чмиыкпыкпиыва"),
+                                new SidebarItem("sbTest", "sdafasdfasd", "Тест"),
+                                new SidebarItem("dfgfhg", "", "ыиыывывапыва")
+                        )),
+                        new SidebarItem("adfgfdsh", "", "аырпторыпры"),
+                        new SidebarItem("ashsdhfee", "", "фывпыавпрывапыва")
+
+                )),
+                new SidebarItem("fgdsfsddf", "doc/otpusk", "Еще какая-то хрень"),
+                new SidebarItem("sdfsdfdsf", "doc/otpusk", "Арваорор ывфорывф ри")
         )));
 
-        sidebarItems.add(new SidebarItem("Справочники","fa fa-file-text-o", Arrays.asList(
-                new SidebarItem("sprav/activitygoal","Цели деятельности ПФХД"),
-                new SidebarItem("sprav/activitykind","Виды деятельности ПФХД"),
-                new SidebarItem("sprav/servicelist","Перечень услуг (работ), осуществляемых на платной основе"),
-                new SidebarItem("sprav/activitykindtype","Виды финансового обеспечения"),
-                new SidebarItem("sprav/vktype","Перечень доходов (поступлений) и расходов (выплат)"),
-                new SidebarItem("sprav/extravalue","Перечень дополнительных показателей")
+
+
+        sidebar.add(new SidebarItem("sbSprav", "Справочники","fa fa-file-text-o", Arrays.asList(
+                new SidebarItem("sbSpravSpr1", "sprav/spr1","Справочник 1"),
+                new SidebarItem("sbSpravSpr2", "sprav/spr2","Справочник 2"),
+                new SidebarItem("sbSpravSpr3", "sprav/spr3","Справочник 3")
         )));
-        sidebarItems.add(new SidebarItem("extravalue","Доп. показатели","fa fa-database"));
+        sidebar.add(new SidebarItem("sbNoname", "lastsdfdsf","Последний пункт","fa fa-database"));
 
 
 
@@ -125,7 +141,7 @@ public class AceConfig {
         aceAdmin.setTasks(tasks);
         aceAdmin.setNotifications(notifications);
         aceAdmin.setMessages(messages);
-        aceAdmin.setSidebarItems(sidebarItems);
+        aceAdmin.setSidebar(sidebar);
 
         return aceAdmin;
     }

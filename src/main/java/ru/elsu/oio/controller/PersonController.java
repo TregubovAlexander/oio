@@ -66,6 +66,8 @@ public class PersonController {
         aceAdmin.getPage().setScripts(Arrays.asList(MOMENT, DATETIMEPICKER, SWEETALERT2, FORMVALIDATION));
         aceAdmin.getPage().setTop_menu("topmenu_extravalue");
 
+        aceAdmin.setActiveSidebarItem("sbPersons");
+
         model.addAttribute("aceadmin",aceAdmin);
         model.addAttribute("persons", personService.getAll());
 

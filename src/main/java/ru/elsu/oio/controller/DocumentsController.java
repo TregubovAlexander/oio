@@ -76,6 +76,9 @@ public class DocumentsController {
                 CALENDAR,
                 COLORPICKER
         ));
+
+        aceAdmin.setActiveSidebarItem("sbDocTabel");
+
         model.addAttribute("aceadmin",aceAdmin);
 
         // Список файлов с табелем
@@ -109,6 +112,9 @@ public class DocumentsController {
                 FORMVALIDATION,
                 CHOSEN
         ));
+
+        aceAdmin.setActiveSidebarItem("sbDocOtpusk");
+
         model.addAttribute("aceadmin",aceAdmin);
         model.addAttribute("tnOtpuskId",tnOtpuskId);
 
